@@ -1,5 +1,33 @@
 <script>
+	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
+
+	let animatedCount = 0;
+	let yearsExperience = 5;
+	let projectsCompleted = 25;
+	let satisfiedClients = 15;
+
+	onMount(() => {
+		// Animate count up effect
+		const animateCount = () => {
+			const duration = 2000;
+			const steps = 60;
+			const increment = yearsExperience / steps;
+			let current = 0;
+			
+			const timer = setInterval(() => {
+				if (current < yearsExperience) {
+					current += increment;
+					animatedCount = Math.round(current);
+				} else {
+					clearInterval(timer);
+					animatedCount = yearsExperience;
+				}
+			}, duration / steps);
+		};
+
+		animateCount();
+	});
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -50,37 +78,6 @@
 		</div>
 	</section>
 </div>
-<script>
-	import { onMount } from 'svelte';
-	import Button from '$lib/components/ui/button/button.svelte';
-
-	let animatedCount = 0;
-	let yearsExperience = 5;
-	let projectsCompleted = 25;
-	let satisfiedClients = 15;
-
-	onMount(() => {
-		// Animate count up effect
-		const animateCount = () => {
-			const duration = 2000;
-			const steps = 60;
-			const increment = yearsExperience / steps;
-			let current = 0;
-			
-			const timer = setInterval(() => {
-				if (current < yearsExperience) {
-					current += increment;
-					animatedCount = Math.round(current);
-				} else {
-					clearInterval(timer);
-					animatedCount = yearsExperience;
-				}
-			}, duration / steps);
-		};
-
-		animateCount();
-	});
-</script>
 
 <div class="min-h-screen bg-white">
 	<!-- Hero Section -->
