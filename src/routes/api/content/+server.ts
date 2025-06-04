@@ -1,12 +1,10 @@
 import { json } from '@sveltejs/kit';
-import type { RequestEvent } from '@sveltejs/kit';
-import type { Content as ContentType } from '$lib/types/content';
+import type { RequestHandler } from './$types';
+import { ContentService } from '$lib/supabase';
+import type { Content } from '$lib/types/content';
 
-// Simple in-memory storage for demo purposes
-// In production, you'd want to use Cloudflare KV, D1, or a cloud database
-let contentStorage: ContentType | null = null;
-
-const defaultContent: ContentType = {
+// Default content structure (fallback)
+const defaultContent: Content = {
     hero: {
         title: "Data Analyst",
         subtitle: "Turning Numbers into Insights",
@@ -138,41 +136,76 @@ const defaultContent: ContentType = {
     }
 };
 
-export async function GET() {
+// GET - Fetch content from Supabase database
+export const GET: RequestHandler = async () => {
     try {
-        const content = contentStorage || defaultContent;
-        return json(content);
+        console.log('Fetching content from Supabase database...');
+        const content = await ContentService.getContent();
+        
+        if (content) {
+            console.log('Content retrieved from database');
+            return json(content);
+        } else {
+            console.log('No content found in database, returning default content');
+            // Save default content to database for next time
+            await ContentService.saveContent(defaultContent);
+            return json(defaultContent);
+        }
     } catch (error) {
-        return json({ error: 'Failed to fetch content' }, { status: 500 });
+        console.error('Error fetching content from database:', error);
+        // Return default content as fallback
+        return json(defaultContent);
     }
-}
+};
 
-export async function POST({ request }: RequestEvent) {
+// POST - Create new content in database
+export const POST: RequestHandler = async ({ request }) => {
     try {
-        const data: ContentType = await request.json();
-        contentStorage = {
-            ...data,
-            _id: crypto.randomUUID(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        return json(contentStorage);
+        const requestData = await request.json();
+        const contentToSave = Object.keys(requestData).length > 0 ? requestData : defaultContent;
+        
+        console.log('Saving new content to Supabase database...');
+        const result = await ContentService.saveContent(contentToSave);
+        
+        if (result.success) {
+            console.log('Content successfully saved to database');
+            return json(result.data);
+        } else {
+            console.error('Failed to save content:', result.error);
+            return json({ error: 'Failed to save content' }, { status: 500 });
+        }
     } catch (error) {
-        return json({ error: 'Failed to create content' }, { status: 500 });
+        console.error('Error creating content:', error);
+        return json({ error: 'Internal server error' }, { status: 500 });
     }
-}
+};
 
-export async function PUT({ request }: RequestEvent) {
+// PUT - Update existing content in database
+export const PUT: RequestHandler = async ({ request }) => {
     try {
-        const data: ContentType = await request.json();
-        contentStorage = {
-            ...data,
-            _id: contentStorage?._id || crypto.randomUUID(),
-            createdAt: contentStorage?.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-        return json(contentStorage);
+        const updatedContent = await request.json();
+        
+        // Validate that required sections exist
+        const requiredSections = ['hero', 'stats', 'about', 'services', 'projects', 'skills', 'experience', 'contact'];
+        const missingSections = requiredSections.filter(section => !updatedContent[section]);
+        
+        if (missingSections.length > 0) {
+            console.warn('Missing required sections:', missingSections);
+            return json({ error: `Missing required sections: ${missingSections.join(', ')}` }, { status: 400 });
+        }
+        
+        console.log('Updating content in Supabase database...');
+        const result = await ContentService.saveContent(updatedContent);
+        
+        if (result.success) {
+            console.log('Content successfully updated in database');
+            return json(result.data);
+        } else {
+            console.error('Failed to update content:', result.error);
+            return json({ error: 'Failed to update content' }, { status: 500 });
+        }
     } catch (error) {
-        return json({ error: 'Failed to update content' }, { status: 500 });
+        console.error('Error updating content:', error);
+        return json({ error: 'Internal server error' }, { status: 500 });
     }
-} 
+}; 
