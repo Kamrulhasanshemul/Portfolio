@@ -1,33 +1,73 @@
 <script>
     import { content } from '$lib/stores/content';
     import { Button } from '$lib/components/ui/button';
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
 
     let currentContent;
     let isDirty = false;
     let lastSaved = null;
     let isLoading = false;
+    let saveMessage = '';
+    let saveMessageType = 'success'; // success, error
 
-    content.subscribe(value => {
+    // Subscribe to content changes
+    const unsubscribe = content.subscribe(value => {
         if (value && Object.keys(value).length > 0) {
+            console.log('Admin received content update:', value);
             currentContent = JSON.parse(JSON.stringify(value)); // Deep copy to track changes
         }
     });
 
     async function updateContent() {
         isLoading = true;
+        saveMessage = '';
+        console.log('Admin: Saving content...', currentContent);
+        
         try {
             const success = await content.update(currentContent);
             if (success) {
                 isDirty = false;
                 lastSaved = new Date();
-                alert('Content updated successfully!');
+                saveMessage = 'Content updated successfully!';
+                saveMessageType = 'success';
+                console.log('Admin: Content saved successfully');
+                
+                // Clear success message after 3 seconds
+                setTimeout(() => {
+                    saveMessage = '';
+                }, 3000);
             } else {
-                alert('Failed to update content. Please try again.');
+                saveMessage = 'Failed to update content. Please try again.';
+                saveMessageType = 'error';
             }
         } catch (error) {
-            console.error('Error updating content:', error);
-            alert('An error occurred while saving. Please try again.');
+            console.error('Admin: Error updating content:', error);
+            saveMessage = 'An error occurred while saving. Please try again.';
+            saveMessageType = 'error';
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    async function refreshContent() {
+        isLoading = true;
+        try {
+            const success = await content.refresh();
+            if (success) {
+                isDirty = false;
+                saveMessage = 'Content refreshed from server!';
+                saveMessageType = 'success';
+                setTimeout(() => {
+                    saveMessage = '';
+                }, 3000);
+            } else {
+                saveMessage = 'Failed to refresh content.';
+                saveMessageType = 'error';
+            }
+        } catch (error) {
+            console.error('Admin: Error refreshing content:', error);
+            saveMessage = 'An error occurred while refreshing.';
+            saveMessageType = 'error';
         } finally {
             isLoading = false;
         }
@@ -35,15 +75,23 @@
 
     function handleChange() {
         isDirty = true;
+        console.log('Admin: Content changed, marking as dirty');
     }
 
     function resetChanges() {
-        content.subscribe(value => {
+        // Get fresh data from store
+        const unsubscribeReset = content.subscribe(value => {
             if (value) {
                 currentContent = JSON.parse(JSON.stringify(value));
                 isDirty = false;
+                saveMessage = 'Changes reset to last saved version.';
+                saveMessageType = 'success';
+                setTimeout(() => {
+                    saveMessage = '';
+                }, 3000);
             }
-        })();
+        });
+        unsubscribeReset();
     }
 
     // Skills management
@@ -165,6 +213,10 @@
     onMount(() => {
         content.init();
     });
+
+    onDestroy(() => {
+        unsubscribe();
+    });
 </script>
 
 {#if currentContent}
@@ -175,20 +227,38 @@
             {#if lastSaved}
                 <p class="text-sm text-gray-500">Last saved: {lastSaved.toLocaleString()}</p>
             {/if}
+            {#if saveMessage}
+                <p class="text-sm {saveMessageType === 'success' ? 'text-green-600' : 'text-red-600'} mt-1">
+                    {saveMessage}
+                </p>
+            {/if}
         </div>
         <div class="flex gap-4">
+            <Button variant="ghost" on:click={refreshContent} disabled={isLoading}>
+                🔄 Refresh
+            </Button>
             {#if isDirty}
                 <Button variant="outline" on:click={resetChanges} disabled={isLoading}>Reset Changes</Button>
             {/if}
-            <Button variant="default" on:click={updateContent} disabled={!isDirty || isLoading}>
+            <Button variant="default" on:click={updateContent} disabled={!isDirty || isLoading} class="{isDirty ? 'bg-orange-600 hover:bg-orange-700' : ''}">
                 {#if isLoading}
-                    Saving...
+                    ⏳ Saving...
+                {:else if isDirty}
+                    💾 Save Changes*
                 {:else}
-                    Save Changes
+                    ✅ Saved
                 {/if}
             </Button>
         </div>
     </div>
+
+    {#if isDirty}
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <p class="text-orange-800 text-sm">
+                ⚠️ You have unsaved changes. Click "Save Changes" to apply them to the live site.
+            </p>
+        </div>
+    {/if}
 
     <div class="space-y-8">
         <!-- Hero Section -->

@@ -28,11 +28,29 @@
 
 	const unsubscribe = content.subscribe(value => {
 		pageContent = value;
+		console.log('Landing page received content update:', value);
 	});
+
+	// Force refresh content when page becomes visible (e.g., returning from admin)
+	function handleVisibilityChange() {
+		if (!document.hidden) {
+			console.log('Page visible again, refreshing content...');
+			content.refresh();
+		}
+	}
 
 	onMount(() => {
 		content.init();
 		isVisible = true;
+		
+		// Listen for visibility changes to refresh content when returning from admin
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		
+		// Also refresh on window focus
+		window.addEventListener('focus', () => {
+			console.log('Window focused, refreshing content...');
+			content.refresh();
+		});
 		
 		const animateStats = () => {
 			if (!pageContent?.stats) return;
@@ -67,7 +85,11 @@
 		};
 
 		setTimeout(animateStats, 500);
-		return () => unsubscribe();
+		
+		return () => {
+			unsubscribe();
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+		};
 	});
 
 	// Icon mapping for services
@@ -152,14 +174,14 @@
 
 				<div class="flex space-x-6 pt-4">
 					<button 
-						on:click={() => openLink(pageContent.contact.github)} 
+						on:click={() => openLink(pageContent.contact?.github || '')} 
 						class="text-gray-400 hover:text-gray-600 transition-colors"
 						aria-label="Visit GitHub profile"
 					>
 						<Github class="w-6 h-6" />
 					</button>
 					<button 
-						on:click={() => openLink(pageContent.contact.linkedin)} 
+						on:click={() => openLink(pageContent.contact?.linkedin || '')} 
 						class="text-gray-400 hover:text-gray-600 transition-colors"
 						aria-label="Visit LinkedIn profile"
 					>
@@ -221,13 +243,13 @@
 		<div class="max-w-3xl mx-auto text-center">
 			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">About Me</h2>
 			<p class="text-lg text-gray-600 leading-relaxed mb-8">
-				{pageContent.about.description}
+				{pageContent.about?.description || "Loading..."}
 			</p>
 			<div class="grid md:grid-cols-2 gap-8 text-left">
 				<div>
 					<h3 class="font-semibold text-gray-900 mb-3">Technical Expertise</h3>
 					<ul class="space-y-2 text-gray-600">
-						{#each pageContent.about.technicalExpertise as expertise}
+						{#each pageContent.about?.technicalExpertise || [] as expertise}
 							<li>• {expertise}</li>
 						{/each}
 					</ul>
@@ -235,7 +257,7 @@
 				<div>
 					<h3 class="font-semibold text-gray-900 mb-3">Industry Focus</h3>
 					<ul class="space-y-2 text-gray-600">
-						{#each pageContent.about.industryFocus as industry}
+						{#each pageContent.about?.industryFocus || [] as industry}
 							<li>• {industry}</li>
 						{/each}
 					</ul>
@@ -256,7 +278,7 @@
 		</div>
 
 		<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-			{#each pageContent.services as service}
+			{#each pageContent.services || [] as service}
 				<Card class="p-6 hover:shadow-lg transition-shadow duration-300 border-0 bg-gradient-to-br from-white to-gray-50">
 					<CardContent class="p-0">
 						<div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
@@ -282,7 +304,7 @@
 		</div>
 
 		<div class="grid lg:grid-cols-3 gap-8">
-			{#each pageContent.projects as project}
+			{#each pageContent.projects || [] as project}
 				<Card class="overflow-hidden hover:shadow-xl transition-all duration-300 border-0">
 					<div class="aspect-video bg-gradient-to-br from-blue-400 to-purple-500 relative overflow-hidden">
 						<img src={project.image} alt={project.title} class="w-full h-full object-cover" />
@@ -293,7 +315,7 @@
 						<p class="text-gray-600 mb-4 leading-relaxed">{project.description}</p>
 						
 						<div class="flex flex-wrap gap-2 mb-4">
-							{#each project.technologies as tech}
+							{#each project.technologies || [] as tech}
 								<Badge variant="secondary" class="text-xs">{tech}</Badge>
 							{/each}
 						</div>
@@ -322,13 +344,13 @@
 		</div>
 
 		<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-			{#each Object.entries(pageContent.skills) as [category, skills]}
+			{#each Object.entries(pageContent.skills || {}) as [category, skills]}
 				<div class="space-y-6">
 					<h3 class="text-lg font-semibold text-gray-900 capitalize">
 						{category.replace(/([A-Z])/g, ' $1').trim()}
 					</h3>
 					<div class="space-y-4">
-						{#each skills as skill}
+						{#each skills || [] as skill}
 							<div class="space-y-2">
 								<div class="flex justify-between items-center">
 									<span class="text-sm font-medium text-gray-700">{skill.name}</span>
@@ -360,8 +382,8 @@
 		</div>
 
 		<div class="max-w-4xl mx-auto">
-			{#each pageContent.experience as exp, index}
-				<div class="relative pl-8 pb-12 {index === pageContent.experience.length - 1 ? '' : 'border-l-2 border-gray-200'}">
+			{#each pageContent.experience || [] as exp, index}
+				<div class="relative pl-8 pb-12 {index === (pageContent.experience || []).length - 1 ? '' : 'border-l-2 border-gray-200'}">
 					<div class="absolute -left-2 top-0 w-4 h-4 bg-blue-600 rounded-full"></div>
 					<Card class="p-6 hover:shadow-md transition-shadow border-0 bg-white">
 						<CardContent class="p-0">
@@ -381,7 +403,7 @@
 							</div>
 							<p class="text-gray-600 mb-4">{exp.description}</p>
 							<ul class="space-y-2">
-								{#each exp.achievements as achievement}
+								{#each exp.achievements || [] as achievement}
 									<li class="text-gray-600 flex items-start gap-2">
 										<div class="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
 										{achievement}
@@ -412,23 +434,23 @@
 					<div>
 						<h3 class="text-xl font-semibold text-gray-900 mb-6">Get in touch</h3>
 						<div class="space-y-4">
-							<button class="flex items-center gap-3 text-left w-full" on:click={() => openLink(`mailto:${pageContent.contact.email}`)}>
+							<button class="flex items-center gap-3 text-left w-full" on:click={() => openLink(`mailto:${pageContent.contact?.email || ''}`)}>
 								<Mail class="w-5 h-5 text-blue-600" />
-								<span class="text-gray-600 hover:text-blue-600 transition-colors">{pageContent.contact.email}</span>
+								<span class="text-gray-600 hover:text-blue-600 transition-colors">{pageContent.contact?.email || 'Loading...'}</span>
 							</button>
-							<button class="flex items-center gap-3 text-left w-full" on:click={() => openLink(`tel:${pageContent.contact.phone}`)}>
+							<button class="flex items-center gap-3 text-left w-full" on:click={() => openLink(`tel:${pageContent.contact?.phone || ''}`)}>
 								<Phone class="w-5 h-5 text-blue-600" />
-								<span class="text-gray-600 hover:text-blue-600 transition-colors">{pageContent.contact.phone}</span>
+								<span class="text-gray-600 hover:text-blue-600 transition-colors">{pageContent.contact?.phone || 'Loading...'}</span>
 							</button>
 							<div class="flex items-center gap-3">
 								<MapPin class="w-5 h-5 text-blue-600" />
-								<span class="text-gray-600">{pageContent.contact.location}</span>
+								<span class="text-gray-600">{pageContent.contact?.location || 'Loading...'}</span>
 							</div>
 						</div>
 					</div>
 
 					<div class="flex space-x-4">
-						<Button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3" on:click={() => openLink(`mailto:${pageContent.contact.email}`)}>
+						<Button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3" on:click={() => openLink(`mailto:${pageContent.contact?.email || ''}`)}>
 							<Mail class="w-4 h-4 mr-2" />
 							Send Email
 						</Button>
@@ -483,14 +505,14 @@
 			<p class="text-gray-400 mb-6">Transforming data into insights, insights into action.</p>
 			<div class="flex justify-center space-x-6 mb-8">
 				<button 
-					on:click={() => openLink(pageContent.contact.github)} 
+					on:click={() => openLink(pageContent.contact?.github || '')} 
 					class="text-gray-400 hover:text-white transition-colors"
 					aria-label="Visit GitHub profile"
 				>
 					<Github class="w-6 h-6" />
 				</button>
 				<button 
-					on:click={() => openLink(pageContent.contact.linkedin)} 
+					on:click={() => openLink(pageContent.contact?.linkedin || '')} 
 					class="text-gray-400 hover:text-white transition-colors"
 					aria-label="Visit LinkedIn profile"
 				>

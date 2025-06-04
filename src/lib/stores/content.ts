@@ -135,17 +135,32 @@ const defaultContent: Content = {
 
 function createContentStore() {
     const { subscribe, set } = writable<Content>(defaultContent);
+    let initialized = false;
 
     return {
         subscribe,
         init: async () => {
+            if (initialized) {
+                console.log('Content store already initialized');
+                return;
+            }
+            
+            console.log('Initializing content store...');
             try {
                 const response = await fetch('/api/content');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
-                if (Object.keys(data).length > 0) {
+                console.log('Fetched content from API:', data);
+                
+                if (Object.keys(data).length > 0 && data.hero) {
                     set(data);
+                    initialized = true;
+                    console.log('Content store initialized with API data');
                 } else {
                     // If no content exists, create initial content
+                    console.log('No existing content, creating default...');
                     const createResponse = await fetch('/api/content', {
                         method: 'POST',
                         headers: {
@@ -155,13 +170,17 @@ function createContentStore() {
                     });
                     const newData = await createResponse.json();
                     set(newData);
+                    initialized = true;
+                    console.log('Content store initialized with default data');
                 }
             } catch (error) {
                 console.error('Failed to initialize content:', error);
                 set(defaultContent);
+                initialized = true;
             }
         },
         update: async (newContent: Content) => {
+            console.log('Updating content store...', newContent);
             try {
                 const response = await fetch('/api/content', {
                     method: 'PUT',
@@ -170,11 +189,37 @@ function createContentStore() {
                     },
                     body: JSON.stringify(newContent)
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('Received updated content from API:', data);
+                
+                // Immediately update the store with the new data
                 set(data);
+                console.log('Content store updated successfully');
                 return true;
             } catch (error) {
                 console.error('Failed to update content:', error);
+                return false;
+            }
+        },
+        // Force refresh from API
+        refresh: async () => {
+            console.log('Refreshing content store...');
+            try {
+                const response = await fetch('/api/content');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                set(data);
+                console.log('Content store refreshed');
+                return true;
+            } catch (error) {
+                console.error('Failed to refresh content:', error);
                 return false;
             }
         }
