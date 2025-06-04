@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
+import type { Content } from '$lib/types/content';
 
-// Initial content state
-const defaultContent = {
+const defaultContent: Content = {
     hero: {
         title: "Data Analyst",
         subtitle: "Turning Numbers into Insights",
@@ -38,7 +38,7 @@ const defaultContent = {
 };
 
 function createContentStore() {
-    const { subscribe, set, update } = writable(defaultContent);
+    const { subscribe, set } = writable<Content>(defaultContent);
 
     return {
         subscribe,
@@ -65,7 +65,7 @@ function createContentStore() {
                 set(defaultContent);
             }
         },
-        update: async (newContent) => {
+        update: async (newContent: Content) => {
             try {
                 const response = await fetch('/api/content', {
                     method: 'PUT',
