@@ -70,85 +70,18 @@
 		return () => unsubscribe();
 	});
 
-	// Enhanced project data
-	const projects = [
-		{
-			title: "Customer Analytics Dashboard",
-			description: "Built an interactive dashboard tracking customer behavior across multiple touchpoints with real-time analytics and predictive insights.",
-			technologies: ["Python", "React", "D3.js", "PostgreSQL"],
-			impact: "Increased customer retention by 23%",
-			link: "https://github.com/example/customer-dashboard",
-			image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop"
-		},
-		{
-			title: "Sales Forecasting Model",
-			description: "Developed ML models using time series analysis to predict sales performance with 95% accuracy across multiple product lines.",
-			technologies: ["Python", "TensorFlow", "Tableau", "AWS"],
-			impact: "Improved forecast accuracy by 40%",
-			link: "https://github.com/example/sales-forecasting",
-			image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop"
-		},
-		{
-			title: "Data Pipeline Automation",
-			description: "Created scalable ETL pipelines processing 1M+ records daily with automated data quality checks and monitoring.",
-			technologies: ["Apache Airflow", "Docker", "MongoDB", "Grafana"],
-			impact: "Reduced processing time by 80%",
-			link: "https://github.com/example/data-pipeline",
-			image: "https://images.unsplash.com/photo-1518186285589-2f7649de83e0?w=500&h=300&fit=crop"
-		}
-	];
+	// Icon mapping for services
+	const iconMap = {
+		BarChart3,
+		Brain,
+		Database,
+		Code,
+		Star
+	};
 
-	// Services offered
-	const services = [
-		{
-			icon: BarChart3,
-			title: "Data Analytics",
-			description: "Transform raw data into actionable business insights with advanced statistical analysis and visualization."
-		},
-		{
-			icon: Brain,
-			title: "Machine Learning",
-			description: "Build predictive models and AI solutions to automate decision-making and forecast trends."
-		},
-		{
-			icon: Database,
-			title: "Data Engineering",
-			description: "Design and implement robust data pipelines, warehouses, and ETL processes for scalable data operations."
-		},
-		{
-			icon: Code,
-			title: "Business Intelligence",
-			description: "Create comprehensive dashboards and reporting systems for data-driven business strategies."
-		}
-	];
-
-	// Experience timeline
-	const experience = [
-		{
-			company: "TechCorp Solutions",
-			position: "Senior Data Analyst",
-			period: "2022 - Present",
-			location: "San Francisco, CA",
-			description: "Leading analytics initiatives for a $50M product portfolio, developing predictive models, and mentoring junior analysts.",
-			achievements: [
-				"Increased revenue by 18% through data-driven insights",
-				"Automated reporting processes reducing manual work by 60%",
-				"Built ML models improving customer segmentation accuracy by 35%"
-			]
-		},
-		{
-			company: "DataInsights LLC",
-			position: "Data Analyst",
-			period: "2020 - 2022",
-			location: "Remote",
-			description: "Specialized in customer analytics and business intelligence for e-commerce and retail clients.",
-			achievements: [
-				"Improved forecast accuracy by 25% using time series analysis",
-				"Created executive dashboards used by C-level leadership",
-				"Reduced customer churn by 20% through predictive modeling"
-			]
-		}
-	];
+	function getIcon(iconName: string) {
+		return iconMap[iconName] || Star;
+	}
 
 	function scrollToSection(sectionId: string) {
 		document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
@@ -219,14 +152,14 @@
 
 				<div class="flex space-x-6 pt-4">
 					<button 
-						on:click={() => openLink('https://github.com')} 
+						on:click={() => openLink(pageContent.contact.github)} 
 						class="text-gray-400 hover:text-gray-600 transition-colors"
 						aria-label="Visit GitHub profile"
 					>
 						<Github class="w-6 h-6" />
 					</button>
 					<button 
-						on:click={() => openLink('https://linkedin.com')} 
+						on:click={() => openLink(pageContent.contact.linkedin)} 
 						class="text-gray-400 hover:text-gray-600 transition-colors"
 						aria-label="Visit LinkedIn profile"
 					>
@@ -288,27 +221,23 @@
 		<div class="max-w-3xl mx-auto text-center">
 			<h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">About Me</h2>
 			<p class="text-lg text-gray-600 leading-relaxed mb-8">
-				I'm a passionate data analyst with expertise in transforming complex datasets into strategic business insights. 
-				With a strong background in statistical analysis, machine learning, and data visualization, I help organizations 
-				make data-driven decisions that drive growth and efficiency.
+				{pageContent.about.description}
 			</p>
 			<div class="grid md:grid-cols-2 gap-8 text-left">
 				<div>
 					<h3 class="font-semibold text-gray-900 mb-3">Technical Expertise</h3>
 					<ul class="space-y-2 text-gray-600">
-						<li>• Advanced Statistical Analysis</li>
-						<li>• Machine Learning & AI</li>
-						<li>• Data Visualization</li>
-						<li>• Database Design & Management</li>
+						{#each pageContent.about.technicalExpertise as expertise}
+							<li>• {expertise}</li>
+						{/each}
 					</ul>
 				</div>
 				<div>
 					<h3 class="font-semibold text-gray-900 mb-3">Industry Focus</h3>
 					<ul class="space-y-2 text-gray-600">
-						<li>• E-commerce & Retail</li>
-						<li>• Financial Services</li>
-						<li>• Healthcare Analytics</li>
-						<li>• Marketing & Customer Analytics</li>
+						{#each pageContent.about.industryFocus as industry}
+							<li>• {industry}</li>
+						{/each}
 					</ul>
 				</div>
 			</div>
@@ -327,11 +256,11 @@
 		</div>
 
 		<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-			{#each services as service}
+			{#each pageContent.services as service}
 				<Card class="p-6 hover:shadow-lg transition-shadow duration-300 border-0 bg-gradient-to-br from-white to-gray-50">
 					<CardContent class="p-0">
 						<div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-							<svelte:component this={service.icon} class="w-6 h-6 text-blue-600" />
+							<svelte:component this={getIcon(service.icon)} class="w-6 h-6 text-blue-600" />
 						</div>
 						<h3 class="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
 						<p class="text-gray-600 leading-relaxed">{service.description}</p>
@@ -353,7 +282,7 @@
 		</div>
 
 		<div class="grid lg:grid-cols-3 gap-8">
-			{#each projects as project}
+			{#each pageContent.projects as project}
 				<Card class="overflow-hidden hover:shadow-xl transition-all duration-300 border-0">
 					<div class="aspect-video bg-gradient-to-br from-blue-400 to-purple-500 relative overflow-hidden">
 						<img src={project.image} alt={project.title} class="w-full h-full object-cover" />
@@ -431,8 +360,8 @@
 		</div>
 
 		<div class="max-w-4xl mx-auto">
-			{#each experience as exp, index}
-				<div class="relative pl-8 pb-12 {index === experience.length - 1 ? '' : 'border-l-2 border-gray-200'}">
+			{#each pageContent.experience as exp, index}
+				<div class="relative pl-8 pb-12 {index === pageContent.experience.length - 1 ? '' : 'border-l-2 border-gray-200'}">
 					<div class="absolute -left-2 top-0 w-4 h-4 bg-blue-600 rounded-full"></div>
 					<Card class="p-6 hover:shadow-md transition-shadow border-0 bg-white">
 						<CardContent class="p-0">
@@ -483,23 +412,23 @@
 					<div>
 						<h3 class="text-xl font-semibold text-gray-900 mb-6">Get in touch</h3>
 						<div class="space-y-4">
-							<button class="flex items-center gap-3 text-left w-full" on:click={() => openLink('mailto:hello@dataanalyst.com')}>
+							<button class="flex items-center gap-3 text-left w-full" on:click={() => openLink(`mailto:${pageContent.contact.email}`)}>
 								<Mail class="w-5 h-5 text-blue-600" />
-								<span class="text-gray-600 hover:text-blue-600 transition-colors">hello@dataanalyst.com</span>
+								<span class="text-gray-600 hover:text-blue-600 transition-colors">{pageContent.contact.email}</span>
 							</button>
-							<button class="flex items-center gap-3 text-left w-full" on:click={() => openLink('tel:+15551234567')}>
+							<button class="flex items-center gap-3 text-left w-full" on:click={() => openLink(`tel:${pageContent.contact.phone}`)}>
 								<Phone class="w-5 h-5 text-blue-600" />
-								<span class="text-gray-600 hover:text-blue-600 transition-colors">+1 (555) 123-4567</span>
+								<span class="text-gray-600 hover:text-blue-600 transition-colors">{pageContent.contact.phone}</span>
 							</button>
 							<div class="flex items-center gap-3">
 								<MapPin class="w-5 h-5 text-blue-600" />
-								<span class="text-gray-600">San Francisco, CA</span>
+								<span class="text-gray-600">{pageContent.contact.location}</span>
 							</div>
 						</div>
 					</div>
 
 					<div class="flex space-x-4">
-						<Button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3" on:click={() => openLink('mailto:hello@dataanalyst.com')}>
+						<Button class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3" on:click={() => openLink(`mailto:${pageContent.contact.email}`)}>
 							<Mail class="w-4 h-4 mr-2" />
 							Send Email
 						</Button>
@@ -554,14 +483,14 @@
 			<p class="text-gray-400 mb-6">Transforming data into insights, insights into action.</p>
 			<div class="flex justify-center space-x-6 mb-8">
 				<button 
-					on:click={() => openLink('https://github.com')} 
+					on:click={() => openLink(pageContent.contact.github)} 
 					class="text-gray-400 hover:text-white transition-colors"
 					aria-label="Visit GitHub profile"
 				>
 					<Github class="w-6 h-6" />
 				</button>
 				<button 
-					on:click={() => openLink('https://linkedin.com')} 
+					on:click={() => openLink(pageContent.contact.linkedin)} 
 					class="text-gray-400 hover:text-white transition-colors"
 					aria-label="Visit LinkedIn profile"
 				>
