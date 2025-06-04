@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { MONGODB_URI } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 interface Cached {
     conn: typeof mongoose | null;
@@ -7,7 +7,7 @@ interface Cached {
 }
 
 declare global {
-    var mongoose: { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null } | undefined;
+    var mongoose: Cached | undefined;
 }
 
 let cached: Cached = global.mongoose || { conn: null, promise: null };
@@ -17,6 +17,12 @@ if (!cached) {
 }
 
 async function dbConnect(): Promise<typeof mongoose> {
+    const MONGODB_URI = env.MONGODB_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/portfolio';
+    
+    if (!MONGODB_URI) {
+        throw new Error('MONGODB_URI environment variable is not defined');
+    }
+
     if (cached.conn) {
         return cached.conn;
     }

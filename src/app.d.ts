@@ -10,7 +10,6 @@ declare global {
 
 	namespace NodeJS {
 		interface ProcessEnv {
-			MONGODB_URI: string;
 			SESSION_SECRET: string;
 			ADMIN_USERNAME: string;
 			ADMIN_PASSWORD: string;

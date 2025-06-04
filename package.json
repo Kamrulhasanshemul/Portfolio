@@ -61,7 +61,6 @@
 	"dependencies": {
 		"dotenv": "^16.5.0",
 		"drizzle-orm": "^0.40.0",
-		"mongoose": "^8.15.1",
 		"postgres": "^3.4.5"
 	}
 }
