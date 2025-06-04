@@ -6,16 +6,31 @@
     let currentContent;
     let isDirty = false;
     let lastSaved = null;
+    let isLoading = false;
 
     content.subscribe(value => {
-        currentContent = JSON.parse(JSON.stringify(value)); // Deep copy to track changes
+        if (value && Object.keys(value).length > 0) {
+            currentContent = JSON.parse(JSON.stringify(value)); // Deep copy to track changes
+        }
     });
 
-    function updateContent() {
-        content.set(currentContent);
-        isDirty = false;
-        lastSaved = new Date();
-        alert('Content updated successfully!');
+    async function updateContent() {
+        isLoading = true;
+        try {
+            const success = await content.update(currentContent);
+            if (success) {
+                isDirty = false;
+                lastSaved = new Date();
+                alert('Content updated successfully!');
+            } else {
+                alert('Failed to update content. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error updating content:', error);
+            alert('An error occurred while saving. Please try again.');
+        } finally {
+            isLoading = false;
+        }
     }
 
     function handleChange() {
@@ -24,27 +39,38 @@
 
     function resetChanges() {
         content.subscribe(value => {
-            currentContent = JSON.parse(JSON.stringify(value));
-            isDirty = false;
+            if (value) {
+                currentContent = JSON.parse(JSON.stringify(value));
+                isDirty = false;
+            }
         })();
     }
 
     // Add a new skill to a category
     function addSkill(category) {
-        currentContent.skills[category] = [
-            ...currentContent.skills[category],
-            { name: '', level: 50 }
-        ];
-        handleChange();
+        if (currentContent?.skills?.[category]) {
+            currentContent.skills[category] = [
+                ...currentContent.skills[category],
+                { name: '', level: 50 }
+            ];
+            handleChange();
+        }
     }
 
     // Remove a skill from a category
     function removeSkill(category, index) {
-        currentContent.skills[category] = currentContent.skills[category].filter((_, i) => i !== index);
-        handleChange();
+        if (currentContent?.skills?.[category]) {
+            currentContent.skills[category] = currentContent.skills[category].filter((_, i) => i !== index);
+            handleChange();
+        }
     }
+
+    onMount(() => {
+        content.init();
+    });
 </script>
 
+{#if currentContent}
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <div>
@@ -55,9 +81,15 @@
         </div>
         <div class="flex gap-4">
             {#if isDirty}
-                <Button variant="outline" on:click={resetChanges}>Reset Changes</Button>
+                <Button variant="outline" on:click={resetChanges} disabled={isLoading}>Reset Changes</Button>
             {/if}
-            <Button variant="default" on:click={updateContent} disabled={!isDirty}>Save Changes</Button>
+            <Button variant="default" on:click={updateContent} disabled={!isDirty || isLoading}>
+                {#if isLoading}
+                    Saving...
+                {:else}
+                    Save Changes
+                {/if}
+            </Button>
         </div>
     </div>
 
@@ -67,8 +99,9 @@
             <h2 class="text-2xl font-semibold mb-4">Hero Section</h2>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-1">Title</label>
+                    <label for="hero-title" class="block text-sm font-medium mb-1">Title</label>
                     <input 
+                        id="hero-title"
                         type="text" 
                         bind:value={currentContent.hero.title}
                         on:input={handleChange}
@@ -76,8 +109,9 @@
                     >
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">Subtitle</label>
+                    <label for="hero-subtitle" class="block text-sm font-medium mb-1">Subtitle</label>
                     <input 
+                        id="hero-subtitle"
                         type="text" 
                         bind:value={currentContent.hero.subtitle}
                         on:input={handleChange}
@@ -85,16 +119,18 @@
                     >
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">Description</label>
+                    <label for="hero-description" class="block text-sm font-medium mb-1">Description</label>
                     <textarea 
+                        id="hero-description"
                         bind:value={currentContent.hero.description}
                         on:input={handleChange}
                         class="w-full p-2 border rounded h-24"
                     ></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">Profile Image URL</label>
+                    <label for="hero-image" class="block text-sm font-medium mb-1">Profile Image URL</label>
                     <input 
+                        id="hero-image"
                         type="text" 
                         bind:value={currentContent.hero.profileImage}
                         on:input={handleChange}
@@ -109,8 +145,9 @@
             <h2 class="text-2xl font-semibold mb-4">Stats</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-sm font-medium mb-1">Years Experience</label>
+                    <label for="years-exp" class="block text-sm font-medium mb-1">Years Experience</label>
                     <input 
+                        id="years-exp"
                         type="number" 
                         bind:value={currentContent.stats.yearsExperience}
                         on:input={handleChange}
@@ -118,8 +155,9 @@
                     >
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">Projects Completed</label>
+                    <label for="projects-completed" class="block text-sm font-medium mb-1">Projects Completed</label>
                     <input 
+                        id="projects-completed"
                         type="number" 
                         bind:value={currentContent.stats.projectsCompleted}
                         on:input={handleChange}
@@ -127,8 +165,9 @@
                     >
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-1">Satisfied Clients</label>
+                    <label for="satisfied-clients" class="block text-sm font-medium mb-1">Satisfied Clients</label>
                     <input 
+                        id="satisfied-clients"
                         type="number" 
                         bind:value={currentContent.stats.satisfiedClients}
                         on:input={handleChange}
@@ -145,7 +184,7 @@
             {#each Object.entries(currentContent.skills) as [category, skills]}
                 <div class="mb-8">
                     <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-xl font-semibold capitalize">{category}</h3>
+                        <h3 class="text-xl font-semibold capitalize">{category.replace(/([A-Z])/g, ' $1').trim()}</h3>
                         <Button variant="outline" size="sm" on:click={() => addSkill(category)}>
                             Add Skill
                         </Button>
@@ -184,4 +223,11 @@
             {/each}
         </section>
     </div>
-</div> 
+</div>
+{:else}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-center items-center min-h-64">
+        <p class="text-lg text-gray-500">Loading content...</p>
+    </div>
+</div>
+{/if} 

@@ -1,14 +1,18 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-// In a real application, you would want to store this securely and not in the code
-const ADMIN_CREDENTIALS = {
-    username: 'admin',
-    password: 'admin123'
-};
+interface User {
+    username: string;
+}
+
+interface AuthState {
+    isAuthenticated: boolean;
+    user: User | null;
+    initialized: boolean;
+}
 
 const createAuthStore = () => {
-    const { subscribe, set } = writable({
+    const { subscribe, set } = writable<AuthState>({
         isAuthenticated: false,
         user: null,
         initialized: false
@@ -16,8 +20,12 @@ const createAuthStore = () => {
 
     return {
         subscribe,
-        login: (username, password) => {
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        login: async (username: string, password: string): Promise<boolean> => {
+            // In production, this would be a secure API call
+            const defaultUsername = 'admin';
+            const defaultPassword = 'admin123';
+            
+            if (username === defaultUsername && password === defaultPassword) {
                 set({
                     isAuthenticated: true,
                     user: { username },
@@ -25,6 +33,7 @@ const createAuthStore = () => {
                 });
                 if (browser) {
                     localStorage.setItem('admin-auth', 'true');
+                    localStorage.setItem('admin-user', username);
                 }
                 return true;
             }
@@ -38,14 +47,16 @@ const createAuthStore = () => {
             });
             if (browser) {
                 localStorage.removeItem('admin-auth');
+                localStorage.removeItem('admin-user');
             }
         },
         checkAuth: () => {
             if (browser) {
                 const isAuth = localStorage.getItem('admin-auth') === 'true';
+                const username = localStorage.getItem('admin-user');
                 set({
                     isAuthenticated: isAuth,
-                    user: isAuth ? { username: ADMIN_CREDENTIALS.username } : null,
+                    user: isAuth && username ? { username } : null,
                     initialized: true
                 });
             } else {

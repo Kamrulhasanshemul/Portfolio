@@ -8,6 +8,7 @@
     let username = '';
     let password = '';
     let error = '';
+    let isLoading = false;
 
     onMount(() => {
         if (browser) {
@@ -26,15 +27,25 @@
     async function handleLogin(event) {
         event.preventDefault();
         error = '';
+        isLoading = true;
+        
         if (!username || !password) {
             error = 'Please fill in all fields';
+            isLoading = false;
             return;
         }
 
-        const success = auth.login(username, password);
-        if (!success) {
-            error = 'Invalid credentials';
-            password = ''; // Clear password on failed attempt
+        try {
+            const success = await auth.login(username, password);
+            if (!success) {
+                error = 'Invalid credentials';
+                password = ''; // Clear password on failed attempt
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            error = 'An error occurred during login. Please try again.';
+        } finally {
+            isLoading = false;
         }
     }
 </script>
@@ -60,7 +71,8 @@
                         id="username"
                         type="text"
                         bind:value={username}
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        disabled={isLoading}
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                         required
                     />
                 </div>
@@ -70,14 +82,22 @@
                         id="password"
                         type="password"
                         bind:value={password}
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        disabled={isLoading}
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
                         required
                     />
                 </div>
             </div>
-            <Button type="submit" variant="default" class="w-full">
-                Sign in
+            <Button type="submit" variant="default" class="w-full" disabled={isLoading}>
+                {#if isLoading}
+                    Signing in...
+                {:else}
+                    Sign in
+                {/if}
             </Button>
         </form>
+        <div class="text-center text-sm text-gray-500">
+            <p>Default credentials: admin / admin123</p>
+        </div>
     </div>
 </div> 
