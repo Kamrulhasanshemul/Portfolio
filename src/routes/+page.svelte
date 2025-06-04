@@ -19,12 +19,18 @@
 		Star,
 		Calendar,
 		MapPin,
-		Phone
+		Phone,
+		Menu,
+		X,
+		ChevronUp
 	} from '@lucide/svelte';
 
 	let pageContent: Content | null = null;
 	let animatedStats = { years: 0, projects: 0, clients: 0 };
 	let isVisible = false;
+	let mobileMenuOpen = false;
+	let showScrollTop = false;
+	let activeSection = 'hero';
 
 	const unsubscribe = content.subscribe(value => {
 		pageContent = value;
@@ -39,6 +45,29 @@
 		}
 	}
 
+	// Scroll tracking
+	function handleScroll() {
+		showScrollTop = window.scrollY > 300;
+		
+		// Update active section
+		const sections = ['hero', 'about', 'services', 'projects', 'experience', 'contact'];
+		for (const section of sections) {
+			const element = document.getElementById(section);
+			if (element) {
+				const rect = element.getBoundingClientRect();
+				if (rect.top <= 100 && rect.bottom >= 100) {
+					activeSection = section;
+					break;
+				}
+			}
+		}
+	}
+
+	// Scroll to top
+	function scrollToTop() {
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
 	onMount(() => {
 		content.init();
 		isVisible = true;
@@ -51,6 +80,9 @@
 			console.log('Window focused, refreshing content...');
 			content.refresh();
 		});
+
+		// Scroll listener
+		window.addEventListener('scroll', handleScroll);
 		
 		const animateStats = () => {
 			if (!pageContent?.stats) return;
@@ -89,6 +121,7 @@
 		return () => {
 			unsubscribe();
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			window.removeEventListener('scroll', handleScroll);
 		};
 	});
 
@@ -106,11 +139,33 @@
 	}
 
 	function scrollToSection(sectionId: string) {
-		document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+		mobileMenuOpen = false; // Close mobile menu
+		const element = document.getElementById(sectionId);
+		element?.scrollIntoView({ behavior: 'smooth' });
 	}
 
 	function openLink(url: string) {
 		window.open(url, '_blank', 'noopener,noreferrer');
+	}
+
+	function toggleMobileMenu() {
+		mobileMenuOpen = !mobileMenuOpen;
+	}
+
+	// Handle contact form submission
+	function handleContactForm(event: Event) {
+		event.preventDefault();
+		const formData = new FormData(event.target as HTMLFormElement);
+		const name = formData.get('name');
+		const email = formData.get('email');
+		const message = formData.get('message');
+		
+		// Create mailto link
+		const subject = `Portfolio Contact from ${name}`;
+		const body = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
+		const mailtoLink = `mailto:${pageContent?.contact?.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+		
+		window.open(mailtoLink);
 	}
 </script>
 
@@ -121,27 +176,114 @@
 
 {#if pageContent}
 <!-- Navigation -->
-<nav class="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 z-50 transition-all duration-300">
+<nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 z-50 transition-all duration-300">
 	<div class="container mx-auto px-4 py-4">
 		<div class="flex justify-between items-center">
 			<div class="font-bold text-xl text-gray-900">Portfolio</div>
+			
+			<!-- Desktop Navigation -->
 			<div class="hidden md:flex space-x-8">
-				<button on:click={() => scrollToSection('about')} class="text-gray-600 hover:text-gray-900 transition-colors">About</button>
-				<button on:click={() => scrollToSection('services')} class="text-gray-600 hover:text-gray-900 transition-colors">Services</button>
-				<button on:click={() => scrollToSection('projects')} class="text-gray-600 hover:text-gray-900 transition-colors">Projects</button>
-				<button on:click={() => scrollToSection('experience')} class="text-gray-600 hover:text-gray-900 transition-colors">Experience</button>
-				<button on:click={() => scrollToSection('contact')} class="text-gray-600 hover:text-gray-900 transition-colors">Contact</button>
+				<button 
+					on:click={() => scrollToSection('about')} 
+					class="text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'about' ? 'text-blue-600 font-medium' : ''}"
+				>
+					About
+				</button>
+				<button 
+					on:click={() => scrollToSection('services')} 
+					class="text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'services' ? 'text-blue-600 font-medium' : ''}"
+				>
+					Services
+				</button>
+				<button 
+					on:click={() => scrollToSection('projects')} 
+					class="text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'projects' ? 'text-blue-600 font-medium' : ''}"
+				>
+					Projects
+				</button>
+				<button 
+					on:click={() => scrollToSection('experience')} 
+					class="text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'experience' ? 'text-blue-600 font-medium' : ''}"
+				>
+					Experience
+				</button>
+				<button 
+					on:click={() => scrollToSection('contact')} 
+					class="text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'contact' ? 'text-blue-600 font-medium' : ''}"
+				>
+					Contact
+				</button>
 			</div>
-			<Button variant="default" size="sm" class="bg-blue-600 hover:bg-blue-700">
-				<Download class="w-4 h-4 mr-2" />
-				Resume
-			</Button>
+			
+			<div class="flex items-center gap-2">
+				<Button variant="default" size="sm" class="bg-blue-600 hover:bg-blue-700 hidden sm:flex">
+					<Download class="w-4 h-4 mr-2" />
+					Resume
+				</Button>
+				
+				<!-- Mobile menu button -->
+				<button 
+					on:click={toggleMobileMenu}
+					class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+					aria-label="Toggle mobile menu"
+				>
+					{#if mobileMenuOpen}
+						<X class="w-6 h-6" />
+					{:else}
+						<Menu class="w-6 h-6" />
+					{/if}
+				</button>
+			</div>
 		</div>
+		
+		<!-- Mobile Navigation -->
+		{#if mobileMenuOpen}
+			<div class="md:hidden mt-4 pb-4 border-t border-gray-200 pt-4 animate-fade-in">
+				<div class="space-y-3">
+					<button 
+						on:click={() => scrollToSection('about')} 
+						class="block w-full text-left py-2 text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'about' ? 'text-blue-600 font-medium' : ''}"
+					>
+						About
+					</button>
+					<button 
+						on:click={() => scrollToSection('services')} 
+						class="block w-full text-left py-2 text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'services' ? 'text-blue-600 font-medium' : ''}"
+					>
+						Services
+					</button>
+					<button 
+						on:click={() => scrollToSection('projects')} 
+						class="block w-full text-left py-2 text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'projects' ? 'text-blue-600 font-medium' : ''}"
+					>
+						Projects
+					</button>
+					<button 
+						on:click={() => scrollToSection('experience')} 
+						class="block w-full text-left py-2 text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'experience' ? 'text-blue-600 font-medium' : ''}"
+					>
+						Experience
+					</button>
+					<button 
+						on:click={() => scrollToSection('contact')} 
+						class="block w-full text-left py-2 text-gray-600 hover:text-gray-900 transition-colors {activeSection === 'contact' ? 'text-blue-600 font-medium' : ''}"
+					>
+						Contact
+					</button>
+					<div class="pt-2">
+						<Button variant="default" size="sm" class="bg-blue-600 hover:bg-blue-700 w-full">
+							<Download class="w-4 h-4 mr-2" />
+							Download Resume
+						</Button>
+					</div>
+				</div>
+			</div>
+		{/if}
 	</div>
 </nav>
 
 <!-- Hero Section -->
-<section class="pt-24 pb-16 min-h-screen flex items-center bg-gradient-to-br from-slate-50 via-white to-blue-50">
+<section id="hero" class="pt-24 pb-16 min-h-screen flex items-center bg-gradient-to-br from-slate-50 via-white to-blue-50">
 	<div class="container mx-auto px-4">
 		<div class="grid lg:grid-cols-2 gap-12 items-center">
 			<div class="space-y-8" class:animate-fade-in={isVisible}>
@@ -464,11 +606,12 @@
 				<Card class="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-0">
 					<CardContent class="p-0">
 						<h3 class="text-xl font-semibold text-gray-900 mb-4">Quick Contact</h3>
-						<form class="space-y-4">
+						<form class="space-y-4" on:submit={handleContactForm}>
 							<div>
 								<input 
 									type="text" 
 									placeholder="Your Name" 
+									name="name"
 									class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								/>
 							</div>
@@ -476,6 +619,7 @@
 								<input 
 									type="email" 
 									placeholder="Your Email" 
+									name="email"
 									class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								/>
 							</div>
@@ -483,6 +627,7 @@
 								<textarea 
 									placeholder="Your Message" 
 									rows="4"
+									name="message"
 									class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								></textarea>
 							</div>
@@ -526,12 +671,59 @@
 					<Mail class="w-6 h-6" />
 				</button>
 			</div>
-			<div class="text-gray-400 text-sm">
-				© 2024 Data Analyst Portfolio. All rights reserved.
+			<div class="grid md:grid-cols-4 gap-6 mb-8 text-sm">
+				<div>
+					<h4 class="text-white font-medium mb-2">Navigation</h4>
+					<div class="space-y-1">
+						<button on:click={() => scrollToSection('about')} class="block text-gray-400 hover:text-white transition-colors">About</button>
+						<button on:click={() => scrollToSection('services')} class="block text-gray-400 hover:text-white transition-colors">Services</button>
+						<button on:click={() => scrollToSection('projects')} class="block text-gray-400 hover:text-white transition-colors">Projects</button>
+					</div>
+				</div>
+				<div>
+					<h4 class="text-white font-medium mb-2">Services</h4>
+					<div class="space-y-1 text-gray-400">
+						<div>Data Analytics</div>
+						<div>Machine Learning</div>
+						<div>Business Intelligence</div>
+					</div>
+				</div>
+				<div>
+					<h4 class="text-white font-medium mb-2">Contact</h4>
+					<div class="space-y-1 text-gray-400">
+						<div>{pageContent.contact?.email}</div>
+						<div>{pageContent.contact?.phone}</div>
+						<div>{pageContent.contact?.location}</div>
+					</div>
+				</div>
+				<div>
+					<h4 class="text-white font-medium mb-2">Resources</h4>
+					<div class="space-y-1">
+						<button class="block text-gray-400 hover:text-white transition-colors">Download Resume</button>
+						<button on:click={() => scrollToSection('contact')} class="block text-gray-400 hover:text-white transition-colors">Get Quote</button>
+						<button on:click={() => scrollToTop()} class="block text-gray-400 hover:text-white transition-colors">Back to Top</button>
+					</div>
+				</div>
+			</div>
+			<div class="border-t border-gray-800 pt-6">
+				<div class="text-gray-400 text-sm">
+					© 2024 Data Analyst Portfolio. All rights reserved. | Built with SvelteKit
+				</div>
 			</div>
 		</div>
 	</div>
 </footer>
+
+<!-- Scroll to Top Button -->
+{#if showScrollTop}
+	<button
+		on:click={scrollToTop}
+		class="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 z-40 animate-fade-in"
+		aria-label="Scroll to top"
+	>
+		<ChevronUp class="w-6 h-6" />
+	</button>
+{/if}
 
 {:else}
 <!-- Loading State -->
