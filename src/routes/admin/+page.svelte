@@ -13,8 +13,20 @@
     // Subscribe to content changes
     const unsubscribe = content.subscribe(value => {
         if (value && Object.keys(value).length > 0) {
-            console.log('Admin received content update:', value);
+            console.log('Admin received content update with sections:', Object.keys(value));
+            
+            // Ensure all required sections exist
+            const requiredSections = ['hero', 'stats', 'about', 'services', 'projects', 'skills', 'experience', 'contact'];
+            const hasAllSections = requiredSections.every(section => value[section]);
+            
+            if (!hasAllSections) {
+                console.warn('Incomplete content received in admin, some sections missing');
+                // Don't update if content is incomplete
+                return;
+            }
+            
             currentContent = JSON.parse(JSON.stringify(value)); // Deep copy to track changes
+            console.log('Admin content updated successfully');
         }
     });
 

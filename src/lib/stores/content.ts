@@ -152,12 +152,21 @@ function createContentStore() {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                console.log('Fetched content from API:', data);
+                console.log('Raw API response:', JSON.stringify(data, null, 2));
                 
-                if (Object.keys(data).length > 0 && data.hero) {
+                // Validate that we have all required sections
+                const requiredSections = ['hero', 'stats', 'about', 'services', 'projects', 'skills', 'experience', 'contact'];
+                const missingSections = requiredSections.filter(section => !data[section]);
+                
+                if (missingSections.length > 0) {
+                    console.warn('Missing sections in API response:', missingSections);
+                    // Merge with default content to ensure completeness
+                    const completeData = { ...defaultContent, ...data };
+                    set(completeData);
+                    console.log('Content store initialized with merged data');
+                } else if (Object.keys(data).length > 0 && data.hero) {
                     set(data);
-                    initialized = true;
-                    console.log('Content store initialized with API data');
+                    console.log('Content store initialized with complete API data');
                 } else {
                     // If no content exists, create initial content
                     console.log('No existing content, creating default...');
@@ -168,19 +177,33 @@ function createContentStore() {
                         },
                         body: JSON.stringify(defaultContent)
                     });
+                    
+                    if (!createResponse.ok) {
+                        throw new Error(`Create failed: ${createResponse.status}`);
+                    }
+                    
                     const newData = await createResponse.json();
                     set(newData);
-                    initialized = true;
-                    console.log('Content store initialized with default data');
+                    console.log('Content store initialized with newly created data');
                 }
+                
+                initialized = true;
             } catch (error) {
                 console.error('Failed to initialize content:', error);
+                console.log('Falling back to default content');
                 set(defaultContent);
                 initialized = true;
             }
         },
         update: async (newContent: Content) => {
-            console.log('Updating content store...', newContent);
+            console.log('Updating content store with:', Object.keys(newContent));
+            
+            // Validate content before sending
+            if (!newContent.hero || !newContent.stats || !newContent.about) {
+                console.error('Invalid content structure - missing required sections');
+                return false;
+            }
+            
             try {
                 const response = await fetch('/api/content', {
                     method: 'PUT',
@@ -191,11 +214,12 @@ function createContentStore() {
                 });
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
                 }
                 
                 const data = await response.json();
-                console.log('Received updated content from API:', data);
+                console.log('Successfully updated content, received:', Object.keys(data));
                 
                 // Immediately update the store with the new data
                 set(data);
@@ -215,8 +239,21 @@ function createContentStore() {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
-                set(data);
-                console.log('Content store refreshed');
+                console.log('Refresh API response:', Object.keys(data));
+                
+                // Validate and merge if necessary
+                const requiredSections = ['hero', 'stats', 'about', 'services', 'projects', 'skills', 'experience', 'contact'];
+                const missingSections = requiredSections.filter(section => !data[section]);
+                
+                if (missingSections.length > 0) {
+                    console.warn('Missing sections in refresh response:', missingSections);
+                    const completeData = { ...defaultContent, ...data };
+                    set(completeData);
+                } else {
+                    set(data);
+                }
+                
+                console.log('Content store refreshed successfully');
                 return true;
             } catch (error) {
                 console.error('Failed to refresh content:', error);
