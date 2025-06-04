@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { browser } from '$app/environment';
 
 // In a real application, you would want to store this securely and not in the code
 const ADMIN_CREDENTIALS = {
@@ -9,7 +10,8 @@ const ADMIN_CREDENTIALS = {
 const createAuthStore = () => {
     const { subscribe, set } = writable({
         isAuthenticated: false,
-        user: null
+        user: null,
+        initialized: false
     });
 
     return {
@@ -18,9 +20,10 @@ const createAuthStore = () => {
             if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
                 set({
                     isAuthenticated: true,
-                    user: { username }
+                    user: { username },
+                    initialized: true
                 });
-                if (typeof window !== 'undefined') {
+                if (browser) {
                     localStorage.setItem('admin-auth', 'true');
                 }
                 return true;
@@ -30,21 +33,27 @@ const createAuthStore = () => {
         logout: () => {
             set({
                 isAuthenticated: false,
-                user: null
+                user: null,
+                initialized: true
             });
-            if (typeof window !== 'undefined') {
+            if (browser) {
                 localStorage.removeItem('admin-auth');
             }
         },
         checkAuth: () => {
-            if (typeof window !== 'undefined') {
+            if (browser) {
                 const isAuth = localStorage.getItem('admin-auth') === 'true';
-                if (isAuth) {
-                    set({
-                        isAuthenticated: true,
-                        user: { username: ADMIN_CREDENTIALS.username }
-                    });
-                }
+                set({
+                    isAuthenticated: isAuth,
+                    user: isAuth ? { username: ADMIN_CREDENTIALS.username } : null,
+                    initialized: true
+                });
+            } else {
+                set({
+                    isAuthenticated: false,
+                    user: null,
+                    initialized: true
+                });
             }
         }
     };
