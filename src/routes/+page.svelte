@@ -215,6 +215,12 @@
 						Projects
 					</button>
 					<button
+						onclick={() => window.location.href = '/blog'}
+						class="text-gray-600 transition-colors hover:text-gray-900"
+					>
+						Blog
+					</button>
+					<button
 						onclick={() => scrollToSection('experience')}
 						class="text-gray-600 transition-colors hover:text-gray-900 {activeSection ===
 						'experience'
@@ -284,6 +290,12 @@
 								: ''}"
 						>
 							Projects
+						</button>
+						<button
+							onclick={() => window.location.href = '/blog'}
+							class="block w-full py-2 text-left text-gray-600 transition-colors hover:text-gray-900"
+						>
+							Blog
 						</button>
 						<button
 							onclick={() => scrollToSection('experience')}
@@ -518,14 +530,23 @@
 
 							<div class="flex items-center justify-between">
 								<div class="text-sm font-medium text-green-600">{project.impact}</div>
-								<Button
-									variant="ghost"
-									size="sm"
-									class="p-2"
-									onclick={() => openLink(project.link)}
-								>
-									<ExternalLink class="h-4 w-4" />
-								</Button>
+								<div class="flex items-center gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										onclick={() => window.location.href = `/projects/${project.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}`}
+									>
+										View Details
+									</Button>
+									<Button
+										variant="ghost"
+										size="sm"
+										class="p-2"
+										onclick={() => openLink(project.link)}
+									>
+										<ExternalLink class="h-4 w-4" />
+									</Button>
+								</div>
 							</div>
 						</CardContent>
 					</Card>
