@@ -22,21 +22,24 @@ A modern portfolio website built with SvelteKit, TypeScript, and Tailwind CSS, d
 ## Local Development
 
 1. **Clone the repository**
+
    ```bash
    git clone <your-repo-url>
    cd portfolio
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    # Run the setup script (already done)
    ./setup-env.sh
-   
+
    # Or create .env manually with:
    SESSION_SECRET=your-super-secret-key-change-in-production
    ADMIN_USERNAME=admin
@@ -44,6 +47,7 @@ A modern portfolio website built with SvelteKit, TypeScript, and Tailwind CSS, d
    ```
 
 4. **Start development server**
+
    ```bash
    npm run dev
    ```
@@ -58,6 +62,7 @@ A modern portfolio website built with SvelteKit, TypeScript, and Tailwind CSS, d
 ### Option 1: Direct Upload
 
 1. **Build the project**
+
    ```bash
    npm run build
    ```
@@ -74,11 +79,13 @@ A modern portfolio website built with SvelteKit, TypeScript, and Tailwind CSS, d
 1. **Push your code to GitHub/GitLab**
 
 2. **Connect to Cloudflare Pages**
+
    - Go to [Cloudflare Pages](https://pages.cloudflare.com/)
    - Click "Create a project" → "Connect to Git"
    - Select your repository
 
 3. **Configure build settings**
+
    - Framework preset: SvelteKit
    - Build command: `npm run build`
    - Build output directory: `.svelte-kit/cloudflare`
@@ -95,11 +102,13 @@ A modern portfolio website built with SvelteKit, TypeScript, and Tailwind CSS, d
 ### Admin Panel
 
 Access the admin panel at `/admin` to update:
+
 - Hero section content
 - Statistics
 - Skills and proficiency levels
 
 **Note**: In the current version, content is stored in memory and will reset on deployment. For persistent storage, consider upgrading to:
+
 - Cloudflare KV for simple key-value storage
 - Cloudflare D1 for a full SQL database
 - External cloud database (MongoDB Atlas, PlanetScale, etc.)

@@ -7,6 +7,7 @@ This guide will help you deploy your portfolio with Supabase database to Cloudfl
 ## 📋 Prerequisites
 
 Before deploying, ensure you have:
+
 - ✅ **Active Supabase account** with a project
 - ✅ **Cloudflare account**
 - ✅ **GitHub repository** with your portfolio code
@@ -21,6 +22,7 @@ npm run supabase:connect
 ```
 
 This script will:
+
 - ✅ Prompt for your Supabase URL and API key
 - ✅ Test the database connection
 - ✅ Create necessary tables
@@ -45,6 +47,7 @@ If the script doesn't work, set up manually:
 ### Option A: GitHub Integration (Recommended)
 
 1. **Push to GitHub**:
+
    ```bash
    git add .
    git commit -m "Add Supabase integration"
@@ -52,6 +55,7 @@ If the script doesn't work, set up manually:
    ```
 
 2. **Connect to Cloudflare Pages**:
+
    - Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
    - Navigate to **Pages**
    - Click **Create a project**
@@ -69,6 +73,7 @@ If the script doesn't work, set up manually:
 ### Option B: Direct Upload
 
 1. **Build your project**:
+
    ```bash
    npm run deploy:prepare
    ```
@@ -86,6 +91,7 @@ In your Cloudflare Pages project settings:
 2. **Add these variables** (get values from Step 1):
 
 ### Production Variables
+
 ```bash
 SUPABASE_URL=https://yourproject.supabase.co
 SUPABASE_ANON_KEY=your_anon_public_key_here
@@ -96,6 +102,7 @@ ADMIN_PASSWORD=admin123
 ```
 
 ### Important Notes:
+
 - ⚠️ **Never use the service role key** for client-side operations
 - ✅ **Use anon key** for public API access
 - 🔒 **Keep DATABASE_URL secret** (only for server-side operations)
@@ -114,37 +121,49 @@ ADMIN_PASSWORD=admin123
 ### Common Issues & Solutions
 
 #### 1. **Environment Variables Not Loading**
+
 ```
 Error: SUPABASE_URL is undefined
 ```
+
 **Solution**:
+
 - Check environment variables in Cloudflare Pages settings
 - Redeploy after adding variables
 - Ensure variable names match exactly
 
 #### 2. **Database Connection Failed**
+
 ```
 Error: Failed to connect to database
 ```
+
 **Solution**:
+
 - Verify Supabase URL and key are correct
 - Check if database is accessible from Cloudflare
 - Ensure anon key has proper permissions
 
 #### 3. **Tables Not Found**
+
 ```
 Error: relation "portfolio_content" does not exist
 ```
+
 **Solution**:
+
 - Run the SQL setup script in Supabase dashboard
 - Check if tables were created properly
 - Verify database name and schema
 
 #### 4. **Admin Login Issues**
+
 ```
 Error: Authentication failed
 ```
+
 **Solution**:
+
 - Check if admin_users table exists
 - Verify admin user was created
 - Run initialization manually in Supabase
@@ -211,11 +230,13 @@ ADMIN_PASSWORD=your_very_secure_password_here
 ### Add Your Domain
 
 1. **In Cloudflare Pages**:
+
    - Go to **Custom domains**
    - Click **Set up a custom domain**
    - Enter your domain name
 
 2. **Update DNS**:
+
    - Add CNAME record pointing to your Pages URL
    - Wait for DNS propagation
 
@@ -226,6 +247,7 @@ ADMIN_PASSWORD=your_very_secure_password_here
 ## 🎉 Deployment Checklist
 
 ### Before Deployment:
+
 - [ ] Supabase account created and connected
 - [ ] Database tables created with `complete-database-setup.sql`
 - [ ] Environment variables configured
@@ -233,6 +255,7 @@ ADMIN_PASSWORD=your_very_secure_password_here
 - [ ] Admin login tested locally
 
 ### After Deployment:
+
 - [ ] Site loads correctly at Cloudflare URL
 - [ ] Admin panel accessible at `/admin`
 - [ ] Database operations work (create/read/update)
@@ -241,6 +264,7 @@ ADMIN_PASSWORD=your_very_secure_password_here
 - [ ] Environment variables loaded properly
 
 ### Production Security:
+
 - [ ] Row Level Security (RLS) enabled
 - [ ] Default admin password changed
 - [ ] Strong session secret generated
@@ -286,6 +310,7 @@ npm run supabase:connect
 ## 🎯 Success!
 
 Your portfolio is now:
+
 - ✅ **Deployed to Cloudflare Pages**
 - ✅ **Connected to Supabase database**
 - ✅ **Scalable and reliable**
@@ -302,4 +327,4 @@ Your portfolio is now:
 6. **Automatic SSL/HTTPS**
 7. **Scalable infrastructure**
 
-**Your portfolio is now live and ready for the world!** 🌍 
+**Your portfolio is now live and ready for the world!** 🌍
