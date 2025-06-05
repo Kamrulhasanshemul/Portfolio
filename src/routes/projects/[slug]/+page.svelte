@@ -12,7 +12,8 @@
 		Star,
 		Play,
 		ChevronLeft,
-		ChevronRight
+		ChevronRight,
+		X
 	} from '@lucide/svelte';
 
 	export let data;
@@ -139,14 +140,17 @@
 
 				<!-- Featured Image -->
 				{#if project.featured_image}
-					<div class="relative rounded-lg overflow-hidden shadow-lg mb-12">
+					<button
+						class="relative rounded-lg overflow-hidden shadow-lg mb-12 w-full border-0 p-0 bg-transparent cursor-pointer"
+						onclick={() => openImageModal(0)}
+						aria-label="Open image in fullscreen"
+					>
 						<img
 							src={project.featured_image}
 							alt={project.title}
-							class="w-full h-64 md:h-96 object-cover cursor-pointer"
-							onclick={() => openImageModal(0)}
+							class="w-full h-64 md:h-96 object-cover"
 						/>
-					</div>
+					</button>
 				{/if}
 			</div>
 		</div>
@@ -228,12 +232,17 @@
 									<div class="grid md:grid-cols-2 gap-4">
 										{#each project.images as image, index}
 											<div class="space-y-2">
-												<img
-													src={image.url}
-													alt={image.alt}
-													class="w-full h-48 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+												<button
+													class="w-full border-0 p-0 bg-transparent cursor-pointer"
 													onclick={() => openImageModal(index)}
-												/>
+													aria-label="Open image {index + 1} in fullscreen"
+												>
+													<img
+														src={image.url}
+														alt={image.alt}
+														class="w-full h-48 object-cover rounded-lg hover:opacity-80 transition-opacity"
+													/>
+												</button>
 												{#if image.caption}
 													<p class="text-sm text-gray-600">{image.caption}</p>
 												{/if}
@@ -361,7 +370,14 @@
 
 <!-- Image Modal -->
 {#if isImageModalOpen && project.images && project.images.length > 0}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90" onclick={closeImageModal}>
+	<div 
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90" 
+		onclick={closeImageModal}
+		role="dialog"
+		aria-modal="true"
+		aria-label="Image viewer"
+		tabindex="-1"
+	>
 		<div class="relative max-w-6xl max-h-full p-4" onclick={(e) => e.stopPropagation()}>
 			<img
 				src={project.images[currentImageIndex].url}

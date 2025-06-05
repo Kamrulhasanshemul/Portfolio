@@ -534,7 +534,17 @@
 									<Button
 										variant="outline"
 										size="sm"
-										onclick={() => window.location.href = `/projects/${project.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')}`}
+										onclick={() => {
+											// Map project titles to their database slugs
+											const projectSlugs: Record<string, string> = {
+												'E-commerce Analytics Platform': 'ecommerce-analytics-platform',
+												'Healthcare Data Dashboard': 'healthcare-data-dashboard',
+												'Financial Portfolio Tracker': 'financial-portfolio-tracker',
+												'Educational Content CMS': 'educational-content-cms'
+											};
+											const slug = projectSlugs[project.title] || project.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+											window.location.href = `/projects/${slug}`;
+										}}
 									>
 										View Details
 									</Button>
