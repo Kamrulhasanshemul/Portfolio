@@ -2,13 +2,25 @@
 	import { auth } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import * as Card from '$lib/components/ui/card';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { 
+		Shield, 
+		Lock, 
+		User as UserIcon, 
+		AlertCircle,
+		Eye,
+		EyeOff
+	} from 'lucide-svelte';
 
 	let username = '';
 	let password = '';
 	let error = '';
 	let isLoading = false;
+	let showPassword = false;
 
 	onMount(() => {
 		if (browser) {
@@ -40,7 +52,7 @@
 			if (success) {
 				goto('/admin');
 			} else {
-				error = 'Invalid credentials';
+				error = 'Invalid credentials. Please check your username and password.';
 			}
 		} catch (err) {
 			error = 'Login failed. Please try again.';
@@ -49,74 +61,118 @@
 			isLoading = false;
 		}
 	}
+
+	function togglePasswordVisibility() {
+		showPassword = !showPassword;
+	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-gray-50">
-	<div class="w-full max-w-md space-y-8">
-		<div>
-			<h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Admin Login</h2>
-			<p class="mt-2 text-center text-sm text-gray-600">Sign in to manage your portfolio content</p>
-		</div>
-		<form class="mt-8 space-y-6" on:submit={handleLogin}>
-			<div class="-space-y-px rounded-md shadow-sm">
-				<div>
-					<label for="username" class="sr-only">Username</label>
-					<input
-						id="username"
-						name="username"
-						type="text"
-						autocomplete="username"
-						required
-						class="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
-						placeholder="Username"
-						bind:value={username}
-						disabled={isLoading}
-					/>
-				</div>
-				<div>
-					<label for="password" class="sr-only">Password</label>
-					<input
-						id="password"
-						name="password"
-						type="password"
-						autocomplete="current-password"
-						required
-						class="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm"
-						placeholder="Password"
-						bind:value={password}
-						disabled={isLoading}
-					/>
-				</div>
+<div class="min-h-screen flex items-center justify-center p-6">
+	<Card.Root class="w-full max-w-md border-0 shadow-2xl">
+		<!-- Header Section -->
+		<Card.Header class="text-center pb-6">
+			<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg">
+				<Shield class="h-8 w-8" />
 			</div>
+			<Card.Title class="text-2xl font-bold text-gray-900">Admin Login</Card.Title>
+			<Card.Description class="text-gray-600">
+				Sign in to manage your portfolio content
+			</Card.Description>
+		</Card.Header>
 
-			{#if error}
-				<div class="text-center text-sm text-red-600">
-					{error}
+		<!-- Form Section -->
+		<Card.Content>
+			<form onsubmit={handleLogin} class="space-y-5">
+				<!-- Username Field -->
+				<div class="space-y-2">
+					<Label for="username" class="text-sm font-medium text-gray-700">Username</Label>
+					<div class="relative">
+						<UserIcon class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+						<Input
+							id="username"
+							name="username"
+							type="text"
+							autocomplete="username"
+							required
+							bind:value={username}
+							disabled={isLoading}
+							placeholder="Enter your username"
+							class="pl-10 h-11"
+						/>
+					</div>
 				</div>
-			{/if}
 
-			<div>
+				<!-- Password Field -->
+				<div class="space-y-2">
+					<Label for="password" class="text-sm font-medium text-gray-700">Password</Label>
+					<div class="relative">
+						<Lock class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+						<Input
+							id="password"
+							name="password"
+							type={showPassword ? 'text' : 'password'}
+							autocomplete="current-password"
+							required
+							bind:value={password}
+							disabled={isLoading}
+							placeholder="Enter your password"
+							class="pl-10 pr-10 h-11"
+						/>
+						<button
+							type="button"
+							onclick={togglePasswordVisibility}
+							class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+							disabled={isLoading}
+						>
+							{#if showPassword}
+								<EyeOff class="h-4 w-4" />
+							{:else}
+								<Eye class="h-4 w-4" />
+							{/if}
+						</button>
+					</div>
+				</div>
+
+				<!-- Error Message -->
+				{#if error}
+					<div class="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+						<AlertCircle class="h-4 w-4 flex-shrink-0" />
+						<span>{error}</span>
+					</div>
+				{/if}
+
+				<!-- Submit Button -->
 				<Button
 					type="submit"
-					class="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+					class="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg transition-all duration-200"
 					disabled={isLoading}
 				>
 					{#if isLoading}
-						<span class="absolute inset-y-0 left-0 flex items-center pl-3">
-							<div
-								class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
-							></div>
-						</span>
-						Signing in...
+						<div class="flex items-center gap-2">
+							<div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+							<span>Signing in...</span>
+						</div>
 					{:else}
-						Sign in
+						<span>Sign In</span>
 					{/if}
 				</Button>
-			</div>
+			</form>
+		</Card.Content>
 
-			<div class="text-center text-sm text-gray-500">
-				<p>Default credentials: admin / admin123</p>
+		<!-- Footer Section -->
+		<Card.Footer class="pt-6">
+			<div class="w-full text-center">
+				<div class="rounded-lg bg-gray-50 border border-gray-200 p-4">
+					<p class="text-sm font-medium text-gray-700 mb-2">Default Credentials</p>
+					<div class="space-y-1 text-xs text-gray-600">
+						<p><span class="font-medium">Username:</span> admin</p>
+						<p><span class="font-medium">Password:</span> admin123</p>
+					</div>
+				</div>
+				<p class="mt-4 text-xs text-gray-500">
+					Secure access to your portfolio management system
+				</p>
 			</div>
-		</form>
-	</div>
+		</Card.Footer>
+	</Card.Root>
 </div>
