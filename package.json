@@ -14,7 +14,13 @@
 		"lint": "prettier --check . && eslint .",
 		"db:push": "drizzle-kit push",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
+		"db:studio": "drizzle-kit studio",
+		"db:setup": "node initialize-database.js",
+		"db:create-table": "node create-database-table.js",
+		"supabase:setup": "./setup-supabase.sh",
+		"supabase:connect": "node connect-supabase.js",
+		"supabase:configure": "node setup-my-supabase.js",
+		"deploy:prepare": "npm run build && echo 'Build ready for Cloudflare deployment'"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -60,6 +66,8 @@
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.49.10",
+		"@types/bcryptjs": "^2.4.6",
+		"bcryptjs": "^3.0.2",
 		"dotenv": "^16.5.0",
 		"drizzle-orm": "^0.40.0",
 		"postgres": "^3.4.5"
