@@ -126,7 +126,7 @@
 	});
 
 	// Icon mapping for services
-	const iconMap = {
+	const iconMap: Record<string, any> = {
 		BarChart3,
 		Brain,
 		Database,

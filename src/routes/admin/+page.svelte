@@ -1,27 +1,27 @@
-<script>
+<script lang="ts">
     import { content } from '$lib/stores/content';
     import { Button } from '$lib/components/ui/button';
     import { onMount, onDestroy } from 'svelte';
+    import type { Content } from '$lib/types/content';
 
-    let currentContent;
+    let currentContent: Content | null = null;
     let isDirty = false;
-    let lastSaved = null;
+    let lastSaved: Date | null = null;
     let isLoading = false;
     let saveMessage = '';
-    let saveMessageType = 'success'; // success, error
+    let saveMessageType: 'success' | 'error' = 'success';
 
     // Subscribe to content changes
-    const unsubscribe = content.subscribe(value => {
+    const unsubscribe = content.subscribe((value: Content | null) => {
         if (value && Object.keys(value).length > 0) {
             console.log('Admin received content update with sections:', Object.keys(value));
             
             // Ensure all required sections exist
             const requiredSections = ['hero', 'stats', 'about', 'services', 'projects', 'skills', 'experience', 'contact'];
-            const hasAllSections = requiredSections.every(section => value[section]);
+            const hasAllSections = requiredSections.every(section => value[section as keyof Content]);
             
             if (!hasAllSections) {
                 console.warn('Incomplete content received in admin, some sections missing');
-                // Don't update if content is incomplete
                 return;
             }
             
@@ -31,6 +31,8 @@
     });
 
     async function updateContent() {
+        if (!currentContent) return;
+        
         isLoading = true;
         saveMessage = '';
         console.log('Admin: Saving content...', currentContent);
@@ -92,7 +94,7 @@
 
     function resetChanges() {
         // Get fresh data from store
-        const unsubscribeReset = content.subscribe(value => {
+        const unsubscribeReset = content.subscribe((value: Content | null) => {
             if (value) {
                 currentContent = JSON.parse(JSON.stringify(value));
                 isDirty = false;
@@ -107,25 +109,27 @@
     }
 
     // Skills management
-    function addSkill(category) {
-        if (currentContent?.skills?.[category]) {
-            currentContent.skills[category] = [
-                ...currentContent.skills[category],
+    function addSkill(category: string) {
+        if (currentContent?.skills?.[category as keyof typeof currentContent.skills]) {
+            (currentContent.skills[category as keyof typeof currentContent.skills] as any[]) = [
+                ...(currentContent.skills[category as keyof typeof currentContent.skills] as any[]),
                 { name: '', level: 50 }
             ];
             handleChange();
         }
     }
 
-    function removeSkill(category, index) {
-        if (currentContent?.skills?.[category]) {
-            currentContent.skills[category] = currentContent.skills[category].filter((_, i) => i !== index);
+    function removeSkill(category: string, index: number) {
+        if (currentContent?.skills?.[category as keyof typeof currentContent.skills]) {
+            (currentContent.skills[category as keyof typeof currentContent.skills] as any[]) = 
+                (currentContent.skills[category as keyof typeof currentContent.skills] as any[]).filter((_, i) => i !== index);
             handleChange();
         }
     }
 
     // Services management
     function addService() {
+        if (!currentContent) return;
         currentContent.services = [
             ...currentContent.services,
             { title: '', description: '', icon: 'Star' }
@@ -133,13 +137,15 @@
         handleChange();
     }
 
-    function removeService(index) {
+    function removeService(index: number) {
+        if (!currentContent) return;
         currentContent.services = currentContent.services.filter((_, i) => i !== index);
         handleChange();
     }
 
     // Projects management
     function addProject() {
+        if (!currentContent) return;
         currentContent.projects = [
             ...currentContent.projects,
             { 
@@ -154,12 +160,14 @@
         handleChange();
     }
 
-    function removeProject(index) {
+    function removeProject(index: number) {
+        if (!currentContent) return;
         currentContent.projects = currentContent.projects.filter((_, i) => i !== index);
         handleChange();
     }
 
-    function addTechnology(projectIndex) {
+    function addTechnology(projectIndex: number) {
+        if (!currentContent) return;
         currentContent.projects[projectIndex].technologies = [
             ...currentContent.projects[projectIndex].technologies,
             ''
@@ -167,7 +175,8 @@
         handleChange();
     }
 
-    function removeTechnology(projectIndex, techIndex) {
+    function removeTechnology(projectIndex: number, techIndex: number) {
+        if (!currentContent) return;
         currentContent.projects[projectIndex].technologies = 
             currentContent.projects[projectIndex].technologies.filter((_, i) => i !== techIndex);
         handleChange();
@@ -175,6 +184,7 @@
 
     // Experience management
     function addExperience() {
+        if (!currentContent) return;
         currentContent.experience = [
             ...currentContent.experience,
             {
@@ -189,12 +199,14 @@
         handleChange();
     }
 
-    function removeExperience(index) {
+    function removeExperience(index: number) {
+        if (!currentContent) return;
         currentContent.experience = currentContent.experience.filter((_, i) => i !== index);
         handleChange();
     }
 
-    function addAchievement(expIndex) {
+    function addAchievement(expIndex: number) {
+        if (!currentContent) return;
         currentContent.experience[expIndex].achievements = [
             ...currentContent.experience[expIndex].achievements,
             ''
@@ -202,14 +214,16 @@
         handleChange();
     }
 
-    function removeAchievement(expIndex, achIndex) {
+    function removeAchievement(expIndex: number, achIndex: number) {
+        if (!currentContent) return;
         currentContent.experience[expIndex].achievements = 
             currentContent.experience[expIndex].achievements.filter((_, i) => i !== achIndex);
         handleChange();
     }
 
     // About section list management
-    function addToList(section, listType) {
+    function addToList(section: string, listType: 'technicalExpertise' | 'industryFocus') {
+        if (!currentContent) return;
         currentContent.about[listType] = [
             ...currentContent.about[listType],
             ''
@@ -217,7 +231,8 @@
         handleChange();
     }
 
-    function removeFromList(listType, index) {
+    function removeFromList(listType: 'technicalExpertise' | 'industryFocus', index: number) {
+        if (!currentContent) return;
         currentContent.about[listType] = currentContent.about[listType].filter((_, i) => i !== index);
         handleChange();
     }
@@ -321,12 +336,12 @@
 
         <!-- Stats Section -->
         <section class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-2xl font-semibold mb-4">Stats</h2>
+            <h2 class="text-2xl font-semibold mb-4">Statistics</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                    <label for="years-exp" class="block text-sm font-medium mb-1">Years Experience</label>
+                    <label for="years-experience" class="block text-sm font-medium mb-1">Years Experience</label>
                     <input 
-                        id="years-exp"
+                        id="years-experience"
                         type="number" 
                         bind:value={currentContent.stats.yearsExperience}
                         on:input={handleChange}
@@ -370,59 +385,61 @@
                     ></textarea>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="font-semibold">Technical Expertise</h3>
-                            <Button size="sm" on:click={() => addToList('about', 'technicalExpertise')}>Add</Button>
-                        </div>
-                        <div class="space-y-2">
-                            {#each currentContent.about.technicalExpertise as item, index}
-                                <div class="flex gap-2">
-                                    <input 
-                                        type="text" 
-                                        bind:value={currentContent.about.technicalExpertise[index]}
-                                        on:input={handleChange}
-                                        class="flex-1 p-2 border rounded"
-                                    >
-                                    <Button 
-                                        size="sm" 
-                                        variant="outline" 
-                                        class="text-red-600 hover:bg-red-50"
-                                        on:click={() => removeFromList('technicalExpertise', index)}
-                                    >
-                                        Remove
-                                    </Button>
-                                </div>
-                            {/each}
-                        </div>
+                <!-- Technical Expertise -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold">Technical Expertise</h3>
+                        <Button size="sm" on:click={() => addToList('about', 'technicalExpertise')}>Add</Button>
                     </div>
-                    
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <h3 class="font-semibold">Industry Focus</h3>
-                            <Button size="sm" on:click={() => addToList('about', 'industryFocus')}>Add</Button>
-                        </div>
-                        <div class="space-y-2">
-                            {#each currentContent.about.industryFocus as item, index}
-                                <div class="flex gap-2">
-                                    <input 
-                                        type="text" 
-                                        bind:value={currentContent.about.industryFocus[index]}
-                                        on:input={handleChange}
-                                        class="flex-1 p-2 border rounded"
-                                    >
-                                    <Button 
-                                        size="sm" 
-                                        variant="outline" 
-                                        class="text-red-600 hover:bg-red-50"
-                                        on:click={() => removeFromList('industryFocus', index)}
-                                    >
-                                        Remove
-                                    </Button>
-                                </div>
-                            {/each}
-                        </div>
+                    <div class="space-y-2">
+                        {#each currentContent.about.technicalExpertise as expertise, index}
+                            <div class="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    bind:value={currentContent.about.technicalExpertise[index]}
+                                    on:input={handleChange}
+                                    class="flex-1 p-2 border rounded"
+                                    placeholder="Technical expertise item"
+                                >
+                                <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    class="text-red-600 hover:bg-red-50"
+                                    on:click={() => removeFromList('technicalExpertise', index)}
+                                >
+                                    Remove
+                                </Button>
+                            </div>
+                        {/each}
+                    </div>
+                </div>
+
+                <!-- Industry Focus -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold">Industry Focus</h3>
+                        <Button size="sm" on:click={() => addToList('about', 'industryFocus')}>Add</Button>
+                    </div>
+                    <div class="space-y-2">
+                        {#each currentContent.about.industryFocus as industry, index}
+                            <div class="flex gap-2">
+                                <input 
+                                    type="text" 
+                                    bind:value={currentContent.about.industryFocus[index]}
+                                    on:input={handleChange}
+                                    class="flex-1 p-2 border rounded"
+                                    placeholder="Industry focus item"
+                                >
+                                <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    class="text-red-600 hover:bg-red-50"
+                                    on:click={() => removeFromList('industryFocus', index)}
+                                >
+                                    Remove
+                                </Button>
+                            </div>
+                        {/each}
                     </div>
                 </div>
             </div>
@@ -434,14 +451,15 @@
                 <h2 class="text-2xl font-semibold">Services</h2>
                 <Button on:click={addService}>Add Service</Button>
             </div>
-            <div class="space-y-4">
+            
+            <div class="space-y-6">
                 {#each currentContent.services as service, index}
-                    <div class="border p-4 rounded">
-                        <div class="flex justify-between items-center mb-3">
+                    <div class="p-4 border rounded-lg">
+                        <div class="flex justify-between items-center mb-4">
                             <h3 class="font-semibold">Service {index + 1}</h3>
                             <Button 
                                 size="sm" 
-                                variant="outline" 
+                                variant="destructive"
                                 class="text-red-600 hover:bg-red-50"
                                 on:click={() => removeService(index)}
                             >
@@ -450,8 +468,9 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-sm font-medium mb-1">Title</label>
+                                <label for="service-title-{index}" class="block text-sm font-medium mb-1">Title</label>
                                 <input 
+                                    id="service-title-{index}"
                                     type="text" 
                                     bind:value={service.title}
                                     on:input={handleChange}
@@ -459,18 +478,19 @@
                                 >
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Icon (Lucide name)</label>
+                                <label for="service-icon-{index}" class="block text-sm font-medium mb-1">Icon (Lucide name)</label>
                                 <input 
+                                    id="service-icon-{index}"
                                     type="text" 
                                     bind:value={service.icon}
                                     on:input={handleChange}
                                     class="w-full p-2 border rounded"
-                                    placeholder="e.g. BarChart3, Brain, Database"
                                 >
                             </div>
                             <div class="md:col-span-1">
-                                <label class="block text-sm font-medium mb-1">Description</label>
+                                <label for="service-description-{index}" class="block text-sm font-medium mb-1">Description</label>
                                 <textarea 
+                                    id="service-description-{index}"
                                     bind:value={service.description}
                                     on:input={handleChange}
                                     class="w-full p-2 border rounded h-20"
@@ -488,14 +508,15 @@
                 <h2 class="text-2xl font-semibold">Projects</h2>
                 <Button on:click={addProject}>Add Project</Button>
             </div>
+            
             <div class="space-y-6">
                 {#each currentContent.projects as project, index}
-                    <div class="border p-4 rounded">
-                        <div class="flex justify-between items-center mb-3">
+                    <div class="p-4 border rounded-lg">
+                        <div class="flex justify-between items-center mb-4">
                             <h3 class="font-semibold">Project {index + 1}</h3>
                             <Button 
                                 size="sm" 
-                                variant="outline" 
+                                variant="destructive"
                                 class="text-red-600 hover:bg-red-50"
                                 on:click={() => removeProject(index)}
                             >
@@ -504,8 +525,9 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="block text-sm font-medium mb-1">Title</label>
+                                <label for="project-title-{index}" class="block text-sm font-medium mb-1">Title</label>
                                 <input 
+                                    id="project-title-{index}"
                                     type="text" 
                                     bind:value={project.title}
                                     on:input={handleChange}
@@ -513,8 +535,9 @@
                                 >
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Impact</label>
+                                <label for="project-impact-{index}" class="block text-sm font-medium mb-1">Impact</label>
                                 <input 
+                                    id="project-impact-{index}"
                                     type="text" 
                                     bind:value={project.impact}
                                     on:input={handleChange}
@@ -522,8 +545,9 @@
                                 >
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Link</label>
+                                <label for="project-link-{index}" class="block text-sm font-medium mb-1">Link</label>
                                 <input 
+                                    id="project-link-{index}"
                                     type="text" 
                                     bind:value={project.link}
                                     on:input={handleChange}
@@ -531,8 +555,9 @@
                                 >
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Image URL</label>
+                                <label for="project-image-{index}" class="block text-sm font-medium mb-1">Image URL</label>
                                 <input 
+                                    id="project-image-{index}"
                                     type="text" 
                                     bind:value={project.image}
                                     on:input={handleChange}
@@ -541,8 +566,9 @@
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium mb-1">Description</label>
+                            <label for="project-description-{index}" class="block text-sm font-medium mb-1">Description</label>
                             <textarea 
+                                id="project-description-{index}"
                                 bind:value={project.description}
                                 on:input={handleChange}
                                 class="w-full p-2 border rounded h-20"
@@ -550,7 +576,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <label class="block text-sm font-medium">Technologies</label>
+                                <label for="project-technologies-{index}" class="block text-sm font-medium">Technologies</label>
                                 <Button size="sm" on:click={() => addTechnology(index)}>Add Technology</Button>
                             </div>
                             <div class="space-y-2">
@@ -558,13 +584,14 @@
                                     <div class="flex gap-2">
                                         <input 
                                             type="text" 
-                                            bind:value={project.technologies[techIndex]}
+                                            bind:value={currentContent.projects[index].technologies[techIndex]}
                                             on:input={handleChange}
                                             class="flex-1 p-2 border rounded"
+                                            placeholder="Technology"
                                         >
                                         <Button 
                                             size="sm" 
-                                            variant="outline" 
+                                            variant="destructive"
                                             class="text-red-600 hover:bg-red-50"
                                             on:click={() => removeTechnology(index, techIndex)}
                                         >
@@ -582,46 +609,51 @@
         <!-- Skills Section -->
         <section class="bg-white p-6 rounded-lg shadow-md">
             <h2 class="text-2xl font-semibold mb-4">Skills</h2>
-            {#each Object.entries(currentContent.skills) as [category, skills]}
-                <div class="mb-8">
-                    <div class="flex justify-between items-center mb-3">
-                        <h3 class="text-xl font-semibold capitalize">{category.replace(/([A-Z])/g, ' $1').trim()}</h3>
-                        <Button variant="outline" size="sm" on:click={() => addSkill(category)}>
-                            Add Skill
-                        </Button>
+            
+            <div class="space-y-6">
+                {#each Object.entries(currentContent.skills) as [category, skillList]}
+                    <div class="p-4 border rounded-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-semibold capitalize">{category.replace(/([A-Z])/g, ' $1').trim()}</h3>
+                            <Button variant="outline" size="sm" on:click={() => addSkill(category)}>
+                                Add Skill
+                            </Button>
+                        </div>
+                        <div class="space-y-3">
+                            {#each skillList as skill, index}
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                                    <input 
+                                        type="text" 
+                                        bind:value={skill.name}
+                                        on:input={handleChange}
+                                        placeholder="Skill name"
+                                        class="p-2 border rounded"
+                                    >
+                                    <div class="flex items-center gap-2">
+                                        <input 
+                                            type="range" 
+                                            min="0" 
+                                            max="100" 
+                                            bind:value={skill.level}
+                                            on:input={handleChange}
+                                            class="flex-1"
+                                        >
+                                        <span class="text-sm w-12">{skill.level}%</span>
+                                    </div>
+                                    <Button 
+                                        size="sm" 
+                                        variant="destructive"
+                                        class="text-red-600 hover:bg-red-50"
+                                        on:click={() => removeSkill(category, index)}
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
+                            {/each}
+                        </div>
                     </div>
-                    <div class="space-y-3">
-                        {#each skills as skill, index}
-                            <div class="flex gap-4">
-                                <input 
-                                    type="text" 
-                                    bind:value={skill.name}
-                                    on:input={handleChange}
-                                    class="flex-1 p-2 border rounded"
-                                    placeholder="Skill name"
-                                >
-                                <input 
-                                    type="number" 
-                                    bind:value={skill.level}
-                                    on:input={handleChange}
-                                    class="w-24 p-2 border rounded"
-                                    min="0"
-                                    max="100"
-                                    placeholder="Level"
-                                >
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    class="text-red-600 hover:bg-red-50"
-                                    on:click={() => removeSkill(category, index)}
-                                >
-                                    Remove
-                                </Button>
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-            {/each}
+                {/each}
+            </div>
         </section>
 
         <!-- Experience Section -->
@@ -630,14 +662,15 @@
                 <h2 class="text-2xl font-semibold">Experience</h2>
                 <Button on:click={addExperience}>Add Experience</Button>
             </div>
+            
             <div class="space-y-6">
                 {#each currentContent.experience as exp, index}
-                    <div class="border p-4 rounded">
-                        <div class="flex justify-between items-center mb-3">
+                    <div class="p-4 border rounded-lg">
+                        <div class="flex justify-between items-center mb-4">
                             <h3 class="font-semibold">Experience {index + 1}</h3>
                             <Button 
                                 size="sm" 
-                                variant="outline" 
+                                variant="destructive"
                                 class="text-red-600 hover:bg-red-50"
                                 on:click={() => removeExperience(index)}
                             >
@@ -646,8 +679,9 @@
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="block text-sm font-medium mb-1">Company</label>
+                                <label for="exp-company-{index}" class="block text-sm font-medium mb-1">Company</label>
                                 <input 
+                                    id="exp-company-{index}"
                                     type="text" 
                                     bind:value={exp.company}
                                     on:input={handleChange}
@@ -655,8 +689,9 @@
                                 >
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Position</label>
+                                <label for="exp-position-{index}" class="block text-sm font-medium mb-1">Position</label>
                                 <input 
+                                    id="exp-position-{index}"
                                     type="text" 
                                     bind:value={exp.position}
                                     on:input={handleChange}
@@ -664,18 +699,19 @@
                                 >
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Period</label>
+                                <label for="exp-period-{index}" class="block text-sm font-medium mb-1">Period</label>
                                 <input 
+                                    id="exp-period-{index}"
                                     type="text" 
                                     bind:value={exp.period}
                                     on:input={handleChange}
                                     class="w-full p-2 border rounded"
-                                    placeholder="e.g. 2022 - Present"
                                 >
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Location</label>
+                                <label for="exp-location-{index}" class="block text-sm font-medium mb-1">Location</label>
                                 <input 
+                                    id="exp-location-{index}"
                                     type="text" 
                                     bind:value={exp.location}
                                     on:input={handleChange}
@@ -684,8 +720,9 @@
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium mb-1">Description</label>
+                            <label for="exp-description-{index}" class="block text-sm font-medium mb-1">Description</label>
                             <textarea 
+                                id="exp-description-{index}"
                                 bind:value={exp.description}
                                 on:input={handleChange}
                                 class="w-full p-2 border rounded h-20"
@@ -693,7 +730,7 @@
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <label class="block text-sm font-medium">Achievements</label>
+                                <label for="exp-achievements-{index}" class="block text-sm font-medium">Achievements</label>
                                 <Button size="sm" on:click={() => addAchievement(index)}>Add Achievement</Button>
                             </div>
                             <div class="space-y-2">
@@ -701,13 +738,14 @@
                                     <div class="flex gap-2">
                                         <input 
                                             type="text" 
-                                            bind:value={exp.achievements[achIndex]}
+                                            bind:value={currentContent.experience[index].achievements[achIndex]}
                                             on:input={handleChange}
                                             class="flex-1 p-2 border rounded"
+                                            placeholder="Achievement"
                                         >
                                         <Button 
                                             size="sm" 
-                                            variant="outline" 
+                                            variant="destructive"
                                             class="text-red-600 hover:bg-red-50"
                                             on:click={() => removeAchievement(index, achIndex)}
                                         >

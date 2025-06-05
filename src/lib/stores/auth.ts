@@ -21,7 +21,38 @@ const createAuthStore = () => {
     return {
         subscribe,
         login: async (username: string, password: string): Promise<boolean> => {
-            // In production, this would be a secure API call
+            try {
+                // Try to authenticate with API first
+                const response = await fetch('/api/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'authenticate',
+                        username,
+                        password
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    set({
+                        isAuthenticated: true,
+                        user: { username: data.user.username },
+                        initialized: true
+                    });
+                    if (browser) {
+                        localStorage.setItem('admin-auth', 'true');
+                        localStorage.setItem('admin-user', data.user.username);
+                    }
+                    return true;
+                }
+            } catch (error) {
+                console.warn('API authentication failed, falling back to default:', error);
+            }
+
+            // Fallback for development
             const defaultUsername = 'admin';
             const defaultPassword = 'admin123';
             
