@@ -277,6 +277,7 @@
 													{:else}
 														<video controls class="w-full h-full">
 															<source src={video.url} type="video/mp4" />
+															<track kind="captions" src="" label="Captions" default />
 															Your browser does not support the video tag.
 														</video>
 													{/if}
@@ -373,12 +374,17 @@
 	<div 
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90" 
 		onclick={closeImageModal}
+		onkeydown={(e) => e.key === 'Escape' && closeImageModal()}
 		role="dialog"
 		aria-modal="true"
 		aria-label="Image viewer"
 		tabindex="-1"
 	>
-		<div class="relative max-w-6xl max-h-full p-4" onclick={(e) => e.stopPropagation()}>
+		<div 
+			class="relative max-w-6xl max-h-full p-4" 
+			onclick={(e) => e.stopPropagation()}
+			role="presentation"
+		>
 			<img
 				src={project.images[currentImageIndex].url}
 				alt={project.images[currentImageIndex].alt}
@@ -418,36 +424,70 @@
 
 <style>
 	:global(.prose h1) {
-		@apply text-3xl font-bold text-gray-900 mb-6;
+		font-size: 1.875rem;
+		font-weight: 700;
+		color: #111827;
+		margin-bottom: 1.5rem;
 	}
 	:global(.prose h2) {
-		@apply text-2xl font-semibold text-gray-900 mb-4 mt-8;
+		font-size: 1.5rem;
+		font-weight: 600;
+		color: #111827;
+		margin-bottom: 1rem;
+		margin-top: 2rem;
 	}
 	:global(.prose h3) {
-		@apply text-xl font-semibold text-gray-900 mb-3 mt-6;
+		font-size: 1.25rem;
+		font-weight: 600;
+		color: #111827;
+		margin-bottom: 0.75rem;
+		margin-top: 1.5rem;
 	}
 	:global(.prose p) {
-		@apply text-gray-600 mb-4 leading-relaxed;
+		color: #4B5563;
+		margin-bottom: 1rem;
+		line-height: 1.75;
 	}
 	:global(.prose ul) {
-		@apply list-disc list-inside text-gray-600 mb-4 space-y-1;
+		list-style-type: disc;
+		list-style-position: inside;
+		color: #4B5563;
+		margin-bottom: 1rem;
 	}
 	:global(.prose ol) {
-		@apply list-decimal list-inside text-gray-600 mb-4 space-y-1;
+		list-style-type: decimal;
+		list-style-position: inside;
+		color: #4B5563;
+		margin-bottom: 1rem;
 	}
 	:global(.prose li) {
-		@apply mb-1;
+		margin-bottom: 0.25rem;
 	}
 	:global(.prose strong) {
-		@apply font-semibold text-gray-900;
+		font-weight: 600;
+		color: #111827;
 	}
 	:global(.prose code) {
-		@apply bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-mono;
+		background-color: #F3F4F6;
+		color: #1F2937;
+		padding: 0.125rem 0.25rem;
+		border-radius: 0.25rem;
+		font-size: 0.875rem;
+		font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
 	}
 	:global(.prose pre) {
-		@apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
+		background-color: #1F2937;
+		color: #F9FAFB;
+		padding: 1rem;
+		border-radius: 0.5rem;
+		overflow-x: auto;
+		margin-bottom: 1rem;
 	}
 	:global(.prose blockquote) {
-		@apply border-l-4 border-gray-300 pl-4 italic text-gray-600 mb-4;
+		border-left: 4px solid #E5E7EB;
+		padding-left: 1rem;
+		font-style: italic;
+		color: #6B7280;
+		margin-bottom: 1rem;
 	}
 </style> 
