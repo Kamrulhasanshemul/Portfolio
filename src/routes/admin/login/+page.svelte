@@ -7,7 +7,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
-	import { Shield, Lock, User as UserIcon, AlertCircle, Eye, EyeOff } from 'lucide-svelte';
+	import { Shield, Lock, User as UserIcon, AlertCircle, Eye, EyeOff } from '@lucide/svelte';
 
 	let username = '';
 	let password = '';

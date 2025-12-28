@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import { Upload, X, Image as ImageIcon } from 'lucide-svelte';
+	import { Upload, X, Image as ImageIcon } from '@lucide/svelte';
 
 	export let value: string = '';
 	export let placeholder: string = 'Upload an image';

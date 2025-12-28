@@ -46,7 +46,7 @@
 		Calendar,
 		Tag,
 		Clock
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	let currentContent: Content | null = null;
 	let isDirty = false;

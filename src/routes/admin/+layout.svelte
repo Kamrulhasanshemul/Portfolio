@@ -7,7 +7,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { Shield, LogOut, User, Settings, Globe } from 'lucide-svelte';
+	import { Shield, LogOut, User, Settings, Globe } from '@lucide/svelte';
 
 	interface AuthState {
 		isAuthenticated: boolean;

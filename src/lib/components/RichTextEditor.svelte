@@ -19,7 +19,7 @@
 		Heading3,
 		Link as LinkIcon,
 		Image as ImageIcon
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 
 	export let content: string = '';
 	export const placeholder: string = 'Start writing your blog post...';
