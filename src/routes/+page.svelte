@@ -25,16 +25,22 @@
 		ChevronUp
 	} from '@lucide/svelte';
 
-	let pageContent: Content | null = null;
-	let animatedStats = { years: 0, projects: 0, clients: 0 };
-	let isVisible = false;
-	let mobileMenuOpen = false;
-	let showScrollTop = false;
-	let activeSection = 'hero';
+	let { data } = $props();
 
+	// Initialize with server data if available
+	let pageContent = $state(data.content);
+	let animatedStats = $state({ years: 0, projects: 0, clients: 0 });
+	let isVisible = $state(false);
+	let mobileMenuOpen = $state(false);
+	let showScrollTop = $state(false);
+	let activeSection = $state('hero');
+
+	// Sync with store updates (e.g. if refreshed)
 	const unsubscribe = content.subscribe((value) => {
-		pageContent = value;
-		console.log('Landing page received content update:', value);
+		// Only update if value is valid and different, or if we started null
+		if (value && value !== pageContent) {
+			pageContent = value;
+		}
 	});
 
 	// Force refresh content when page becomes visible (e.g., returning from admin)
@@ -69,7 +75,14 @@
 	}
 
 	onMount(() => {
-		content.init();
+		// If we didn't get data from server, try to init store
+		if (!pageContent) {
+			content.init();
+		} else {
+			// Update store with our server data so other components have it
+			content.set(pageContent);
+		}
+
 		isVisible = true;
 
 		// Listen for visibility changes to refresh content when returning from admin
@@ -329,24 +342,21 @@
 	</nav>
 
 	<!-- Hero Section -->
-	<section
-		id="hero"
-		class="flex min-h-screen items-center bg-gradient-to-br from-slate-50 via-white to-blue-50 pt-24 pb-16"
-	>
+	<section id="hero" class="flex min-h-screen items-center bg-white pt-24 pb-16">
 		<div class="container mx-auto px-4">
-			<div class="grid items-center gap-12 lg:grid-cols-2">
-				<div class="space-y-8" class:animate-fade-in={isVisible}>
-					<div class="space-y-4">
+			<div class="grid items-center gap-16 lg:grid-cols-2">
+				<div class="space-y-10" class:animate-fade-in={isVisible}>
+					<div class="space-y-6">
 						<div
-							class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800"
+							class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-4 py-1.5 text-sm font-medium text-gray-900"
 						>
-							<Star class="mr-2 h-4 w-4" />
+							<div class="mr-2 h-2 w-2 rounded-full bg-green-500"></div>
 							Available for new projects
 						</div>
-						<h1 class="text-4xl leading-tight font-bold text-gray-900 md:text-6xl">
+						<h1 class="text-5xl font-bold tracking-tight text-gray-900 md:text-7xl">
 							{pageContent.hero.title}
 						</h1>
-						<h2 class="text-xl font-medium text-blue-600 md:text-2xl">
+						<h2 class="text-2xl font-medium text-gray-500 md:text-3xl">
 							{pageContent.hero.subtitle}
 						</h2>
 						<p class="max-w-lg text-lg leading-relaxed text-gray-600">
@@ -356,7 +366,7 @@
 
 					<div class="flex flex-col gap-4 sm:flex-row">
 						<Button
-							class="rounded-lg bg-blue-600 px-8 py-3 text-white hover:bg-blue-700"
+							class="h-12 rounded-full bg-gray-900 px-8 text-white hover:bg-black"
 							onclick={() => scrollToSection('contact')}
 						>
 							<Mail class="mr-2 h-4 w-4" />
@@ -364,7 +374,7 @@
 						</Button>
 						<Button
 							variant="outline"
-							class="rounded-lg px-8 py-3"
+							class="h-12 rounded-full border-gray-200 px-8 hover:bg-gray-50"
 							onclick={() => scrollToSection('projects')}
 						>
 							View Projects
@@ -375,21 +385,21 @@
 					<div class="flex space-x-6 pt-4">
 						<button
 							onclick={() => openLink(pageContent?.contact?.github || '')}
-							class="text-gray-400 transition-colors hover:text-gray-600"
+							class="text-gray-400 transition-colors hover:text-gray-900"
 							aria-label="Visit GitHub profile"
 						>
 							<Github class="h-6 w-6" />
 						</button>
 						<button
 							onclick={() => openLink(pageContent?.contact?.linkedin || '')}
-							class="text-gray-400 transition-colors hover:text-gray-600"
+							class="text-gray-400 transition-colors hover:text-gray-900"
 							aria-label="Visit LinkedIn profile"
 						>
 							<Linkedin class="h-6 w-6" />
 						</button>
 						<button
 							onclick={() => scrollToSection('contact')}
-							class="text-gray-400 transition-colors hover:text-gray-600"
+							class="text-gray-400 transition-colors hover:text-gray-900"
 							aria-label="Go to contact section"
 						>
 							<Mail class="h-6 w-6" />
@@ -397,22 +407,31 @@
 					</div>
 				</div>
 
-				<div class="relative" class:animate-fade-in-delay={isVisible}>
+				<div
+					class="relative flex justify-center lg:justify-end"
+					class:animate-fade-in-delay={isVisible}
+				>
 					<div class="relative">
+						<div class="absolute -inset-4 rounded-full bg-gray-100/50"></div>
 						<img
 							src={pageContent.hero.profileImage}
 							alt="Professional headshot"
-							class="mx-auto h-80 w-80 rounded-2xl object-cover shadow-2xl"
+							class="relative h-[400px] w-[400px] rounded-full object-cover shadow-2xl ring-4 ring-white"
 							onerror={(e) => {
 								const target = e.target as HTMLImageElement;
 								target.src =
 									'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face';
 							}}
 						/>
-						<div class="absolute -right-6 -bottom-6 rounded-xl bg-white p-6 shadow-lg">
+						<!-- Minimal floating stats -->
+						<div
+							class="absolute top-10 -right-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-xl"
+						>
 							<div class="text-center">
-								<div class="text-2xl font-bold text-blue-600">{animatedStats.years}+</div>
-								<div class="text-sm text-gray-600">Years Exp.</div>
+								<div class="text-3xl font-bold text-gray-900">{animatedStats.years}+</div>
+								<div class="text-xs font-medium tracking-wider text-gray-500 uppercase">
+									Years Exp
+								</div>
 							</div>
 						</div>
 					</div>
@@ -421,21 +440,23 @@
 		</div>
 	</section>
 
-	<!-- Stats Section -->
-	<section class="bg-white py-16">
+	<!-- Minimal Stats Section -->
+	<section class="border-y border-gray-100 bg-white py-12">
 		<div class="container mx-auto px-4">
-			<div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-				<div class="p-8 text-center">
-					<div class="mb-2 text-4xl font-bold text-blue-600">{animatedStats.years}+</div>
-					<div class="font-medium text-gray-600">Years Experience</div>
+			<div class="flex flex-col items-center justify-center gap-12 md:flex-row md:gap-24">
+				<div class="text-center">
+					<div class="mb-1 text-4xl font-bold text-gray-900">{animatedStats.years}+</div>
+					<div class="text-sm text-gray-500">Years Experience</div>
 				</div>
-				<div class="p-8 text-center">
-					<div class="mb-2 text-4xl font-bold text-blue-600">{animatedStats.projects}+</div>
-					<div class="font-medium text-gray-600">Projects Completed</div>
+				<div class="h-px w-12 bg-gray-200 md:h-12 md:w-px"></div>
+				<div class="text-center">
+					<div class="mb-1 text-4xl font-bold text-gray-900">{animatedStats.projects}+</div>
+					<div class="text-sm text-gray-500">Projects Completed</div>
 				</div>
-				<div class="p-8 text-center">
-					<div class="mb-2 text-4xl font-bold text-blue-600">{animatedStats.clients}+</div>
-					<div class="font-medium text-gray-600">Satisfied Clients</div>
+				<div class="h-px w-12 bg-gray-200 md:h-12 md:w-px"></div>
+				<div class="text-center">
+					<div class="mb-1 text-4xl font-bold text-gray-900">{animatedStats.clients}+</div>
+					<div class="text-sm text-gray-500">Satisfied Clients</div>
 				</div>
 			</div>
 		</div>
@@ -472,26 +493,28 @@
 	</section>
 
 	<!-- Services Section -->
-	<section id="services" class="bg-white py-20">
+	<section id="services" class="bg-gray-50/50 py-24">
 		<div class="container mx-auto px-4">
-			<div class="mb-16 text-center">
-				<h2 class="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">Services</h2>
+			<div class="mb-20 text-center">
+				<h2 class="mb-4 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">Services</h2>
 				<p class="mx-auto max-w-2xl text-lg text-gray-600">
-					Comprehensive data solutions to help your business thrive in the data-driven economy
+					Comprehensive data solutions to help your business thrive
 				</p>
 			</div>
 
 			<div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
 				{#each pageContent.services || [] as service (service.title)}
 					<Card
-						class="border-0 bg-gradient-to-br from-white to-gray-50 p-6 transition-shadow duration-300 hover:shadow-lg"
+						class="group border-0 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
 					>
 						<CardContent class="p-0">
-							<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
-								<svelte:component this={getIcon(service.icon)} class="h-6 w-6 text-blue-600" />
+							<div
+								class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 text-gray-900 transition-colors group-hover:bg-black group-hover:text-white"
+							>
+								<svelte:component this={getIcon(service.icon)} class="h-7 w-7" />
 							</div>
-							<h3 class="mb-3 text-xl font-semibold text-gray-900">{service.title}</h3>
-							<p class="leading-relaxed text-gray-600">{service.description}</p>
+							<h3 class="mb-3 text-xl font-bold text-gray-900">{service.title}</h3>
+							<p class="leading-relaxed text-gray-500">{service.description}</p>
 						</CardContent>
 					</Card>
 				{/each}
@@ -500,72 +523,78 @@
 	</section>
 
 	<!-- Projects Section -->
-	<section id="projects" class="bg-gray-50 py-20">
+	<section id="projects" class="bg-white py-24">
 		<div class="container mx-auto px-4">
-			<div class="mb-16 text-center">
-				<h2 class="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">Featured Projects</h2>
+			<div class="mb-20 text-center">
+				<h2 class="mb-4 text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+					Selected Work
+				</h2>
 				<p class="mx-auto max-w-2xl text-lg text-gray-600">
-					A showcase of recent projects demonstrating my expertise in data analysis and machine
-					learning
+					A showcase of recent data analysis and machine learning projects
 				</p>
 			</div>
 
-			<div class="grid gap-8 lg:grid-cols-3">
+			<div class="grid gap-12 lg:grid-cols-3">
 				{#each pageContent.projects || [] as project (project.title)}
-					<Card class="overflow-hidden border-0 transition-all duration-300 hover:shadow-xl">
-						<div
-							class="relative aspect-video overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500"
-						>
-							<img src={project.image} alt={project.title} class="h-full w-full object-cover" />
-							<div class="absolute inset-0 bg-black/20"></div>
+					<div class="group cursor-pointer">
+						<div class="relative mb-6 aspect-video overflow-hidden rounded-2xl bg-gray-100">
+							<img
+								src={project.image}
+								alt={project.title}
+								class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+							/>
+							<div
+								class="absolute inset-0 bg-black/5 opacity-0 transition-opacity group-hover:opacity-100"
+							></div>
 						</div>
-						<CardContent class="p-6">
-							<h3 class="mb-3 text-xl font-semibold text-gray-900">{project.title}</h3>
-							<p class="mb-4 leading-relaxed text-gray-600">{project.description}</p>
-
-							<div class="mb-4 flex flex-wrap gap-2">
-								{#each project.technologies || [] as tech (tech)}
-									<Badge variant="secondary" class="text-xs">{tech}</Badge>
-								{/each}
-							</div>
-
+						<div class="space-y-3">
 							<div class="flex items-center justify-between">
-								<div class="text-sm font-medium text-green-600">{project.impact}</div>
-								<div class="flex items-center gap-2">
-									<Button
-										variant="outline"
-										size="sm"
-										onclick={() => {
-											// Map project titles to their database slugs
-											const projectSlugs: Record<string, string> = {
-												'E-commerce Analytics Platform': 'ecommerce-analytics-platform',
-												'Healthcare Data Dashboard': 'healthcare-data-dashboard',
-												'Financial Portfolio Tracker': 'financial-portfolio-tracker',
-												'Educational Content CMS': 'educational-content-cms'
-											};
-											const slug =
-												projectSlugs[project.title] ||
-												project.title
-													.toLowerCase()
-													.replace(/[^a-z0-9]/g, '-')
-													.replace(/-+/g, '-');
-											window.location.href = `/projects/${slug}`;
-										}}
-									>
-										View Details
-									</Button>
+								<h3 class="text-xl font-bold text-gray-900">{project.title}</h3>
+								<div class="flex gap-2">
 									<Button
 										variant="ghost"
-										size="sm"
-										class="p-2"
+										size="icon"
+										class="rounded-full hover:bg-gray-100"
 										onclick={() => openLink(project.link)}
 									>
 										<ExternalLink class="h-4 w-4" />
 									</Button>
 								</div>
 							</div>
-						</CardContent>
-					</Card>
+							<p class="line-clamp-2 text-gray-600">{project.description}</p>
+
+							<div class="flex flex-wrap gap-2 pt-2">
+								{#each project.technologies || [] as tech (tech)}
+									<Badge variant="secondary" class="bg-gray-100 text-gray-700 hover:bg-gray-200"
+										>{tech}</Badge
+									>
+								{/each}
+							</div>
+
+							<Button
+								variant="link"
+								class="h-auto p-0 text-gray-900 decoration-gray-900 underline-offset-4 hover:text-gray-600"
+								onclick={() => {
+									// slug logic
+									const projectSlugs: Record<string, string> = {
+										'E-commerce Analytics Platform': 'ecommerce-analytics-platform',
+										'Healthcare Data Dashboard': 'healthcare-data-dashboard',
+										'Financial Portfolio Tracker': 'financial-portfolio-tracker',
+										'Educational Content CMS': 'educational-content-cms'
+									};
+									const slug =
+										projectSlugs[project.title] ||
+										project.title
+											.toLowerCase()
+											.replace(/[^a-z0-9]/g, '-')
+											.replace(/-+/g, '-');
+									window.location.href = `/projects/${slug}`;
+								}}
+							>
+								View Case Study <ArrowRight class="ml-1 h-3 w-3" />
+							</Button>
+						</div>
+					</div>
 				{/each}
 			</div>
 		</div>
