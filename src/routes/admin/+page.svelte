@@ -8,6 +8,8 @@
 	import * as Card from '$lib/components/ui/card';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Select from '$lib/components/ui/select';
+	import * as Table from '$lib/components/ui/table';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import ImageUpload from '$lib/components/ImageUpload.svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import { onMount, onDestroy } from 'svelte';
@@ -45,7 +47,10 @@
 		Edit,
 		Calendar,
 		Tag,
-		Clock
+		Clock,
+		MoreHorizontal,
+		Search,
+		Filter
 	} from '@lucide/svelte';
 
 	let currentContent: Content | null = null;
@@ -495,8 +500,14 @@
 					</div>
 				{/if}
 
-				<Button variant="outline" size="sm" onclick={refreshContent} disabled={isLoading}>
-					<RefreshCw class="h-4 w-4 {isLoading ? 'animate-spin' : ''}" />
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={refreshContent}
+					disabled={isLoading}
+					class="h-8"
+				>
+					<RefreshCw class="mr-2 h-3.5 w-3.5 {isLoading ? 'animate-spin' : ''}" />
 					Refresh
 				</Button>
 
@@ -512,17 +523,17 @@
 					size="sm"
 					onclick={updateContent}
 					disabled={!isDirty || isLoading}
-					class={isDirty ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+					class="h-8 {isDirty ? 'bg-zinc-900 text-white hover:bg-zinc-800' : ''}"
 				>
 					{#if isLoading}
-						<RefreshCw class="h-4 w-4 animate-spin" />
+						<RefreshCw class="mr-2 h-3.5 w-3.5 animate-spin" />
 						Saving...
 					{:else if isDirty}
-						<Save class="h-4 w-4" />
+						<Save class="mr-2 h-3.5 w-3.5" />
 						Save Changes
 					{:else}
-						<Eye class="h-4 w-4" />
-						All Saved
+						<Eye class="mr-2 h-3.5 w-3.5" />
+						Saved
 					{/if}
 				</Button>
 			</div>
@@ -530,10 +541,10 @@
 
 		{#if saveMessage}
 			<div
-				class="mt-3 flex items-center gap-2 rounded-lg px-4 py-2 text-sm {saveMessageType ===
+				class="mt-4 flex items-center gap-2 rounded-md px-3 py-2 text-sm {saveMessageType ===
 				'success'
-					? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
-					: 'border border-red-200 bg-red-50 text-red-800'}"
+					? 'border border-zinc-200 bg-zinc-50 text-zinc-900'
+					: 'border border-red-200 bg-red-50 text-red-900'}"
 			>
 				{saveMessage}
 			</div>
@@ -541,10 +552,10 @@
 
 		{#if isDirty}
 			<div
-				class="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800"
+				class="mt-4 flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
 			>
-				<div class="h-2 w-2 animate-pulse rounded-full bg-amber-500"></div>
-				You have unsaved changes. Click "Save Changes" to apply them to the live site.
+				<div class="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500"></div>
+				You have unsaved changes.
 			</div>
 		{/if}
 	</div>
@@ -595,14 +606,9 @@
 			<!-- Hero Section -->
 			<Tabs.Content value="hero" class="space-y-6">
 				<Card.Root class="border-0 shadow-lg">
-					<Card.Header class="border-b bg-gradient-to-r from-blue-50 to-indigo-50">
-						<Card.Title class="flex items-center gap-2 text-xl">
-							<User class="h-5 w-5 text-blue-600" />
-							Hero Section
-						</Card.Title>
-						<Card.Description>
-							The main introduction section visible on your homepage
-						</Card.Description>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-lg font-semibold tracking-tight">Hero Section</Card.Title>
+						<Card.Description>Customize the main introduction of your portfolio.</Card.Description>
 					</Card.Header>
 					<Card.Content class="pt-6">
 						<div class="grid gap-6 lg:grid-cols-2">
@@ -674,14 +680,19 @@
 				{#if showBlogEditor && editingBlogPost}
 					<!-- Blog Editor -->
 					<Card.Root class="border-0 shadow-lg">
-						<Card.Header class="border-b bg-gradient-to-r from-purple-50 to-indigo-50">
-							<Card.Title class="flex items-center gap-2 text-xl">
-								<Edit class="h-5 w-5 text-purple-600" />
-								{editingBlogPost.id ? 'Edit Blog Post' : 'Create New Blog Post'}
-							</Card.Title>
-							<Card.Description>
-								Write and publish your blog posts with rich formatting
-							</Card.Description>
+						<Card.Header>
+							<div class="flex items-center justify-between">
+								<div>
+									<Card.Title class="text-lg font-semibold tracking-tight"
+										>{editingBlogPost.id ? 'Edit Post' : 'Create New Post'}</Card.Title
+									>
+									<Card.Description>
+										{editingBlogPost.id
+											? 'Update your existing blog post.'
+											: 'Draft a new blog post.'}
+									</Card.Description>
+								</div>
+							</div>
 						</Card.Header>
 						<Card.Content class="space-y-6 pt-6">
 							{#if blogError}
@@ -828,46 +839,36 @@
 						</Card.Content>
 					</Card.Root>
 				{:else}
-					<!-- Blog List -->
-					<Card.Root class="border-0 shadow-lg">
-						<Card.Header class="border-b bg-gradient-to-r from-purple-50 to-pink-50">
-							<div class="flex items-center justify-between">
-								<div>
-									<Card.Title class="flex items-center gap-2 text-xl">
-										<PenTool class="h-5 w-5 text-purple-600" />
-										Blog Management
-									</Card.Title>
-									<Card.Description>
-										Create and manage your blog posts with categories like personal, travel, tech,
-										and journey
-									</Card.Description>
-								</div>
-								<Button onclick={startNewBlogPost}>
-									<Plus class="mr-2 h-4 w-4" />
-									New Post
-								</Button>
+					<!-- Blog List Table View -->
+					<div class="space-y-4">
+						<div class="flex items-center justify-between">
+							<div>
+								<h2 class="text-lg font-semibold tracking-tight">Blog Posts</h2>
+								<p class="text-sm text-gray-500">Manage, edit, and publish your content.</p>
 							</div>
-						</Card.Header>
-						<Card.Content class="pt-6">
-							{#if blogError}
-								<div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
-									{blogError}
-								</div>
-							{/if}
+							<Button onclick={startNewBlogPost} size="sm" class="h-8">
+								<Plus class="mr-2 h-3.5 w-3.5" />
+								New Post
+							</Button>
+						</div>
 
-							<!-- Filters -->
-							<div class="mb-6 flex flex-wrap gap-4">
-								<div>
-									<Label class="text-sm font-medium text-gray-700">Filter by Category</Label>
+						<Card.Root>
+							<Card.Content class="p-0">
+								<!-- Filters Bar -->
+								<div class="flex flex-wrap gap-4 border-b p-4">
+									<div class="flex items-center gap-2">
+										<Search class="h-4 w-4 text-gray-400" />
+										<Input placeholder="Search posts..." class="h-8 w-[200px] lg:w-[300px]" />
+									</div>
 									<Select.Root
 										type="single"
 										bind:value={blogFilters.category}
 										onValueChange={() => loadBlogPosts()}
 									>
-										<Select.Trigger class="mt-1 w-48">
+										<Select.Trigger class="h-8 w-[150px]">
 											{blogFilters.category
 												? blogCategories[blogFilters.category]?.label
-												: 'All Categories'}
+												: 'Category'}
 										</Select.Trigger>
 										<Select.Content>
 											<Select.Item value="" label="All Categories">All Categories</Select.Item>
@@ -876,18 +877,15 @@
 											{/each}
 										</Select.Content>
 									</Select.Root>
-								</div>
-								<div>
-									<Label class="text-sm font-medium text-gray-700">Filter by Status</Label>
 									<Select.Root
 										type="single"
 										bind:value={blogFilters.status}
 										onValueChange={() => loadBlogPosts()}
 									>
-										<Select.Trigger class="mt-1 w-48">
+										<Select.Trigger class="h-8 w-[120px]">
 											{blogFilters.status
 												? blogFilters.status.charAt(0).toUpperCase() + blogFilters.status.slice(1)
-												: 'All Statuses'}
+												: 'Status'}
 										</Select.Trigger>
 										<Select.Content>
 											<Select.Item value="" label="All Statuses">All Statuses</Select.Item>
@@ -896,127 +894,126 @@
 											<Select.Item value="archived" label="Archived">Archived</Select.Item>
 										</Select.Content>
 									</Select.Root>
+									<div class="ml-auto">
+										<Button
+											variant="ghost"
+											size="icon"
+											onclick={loadBlogPosts}
+											disabled={blogLoading}
+											class="h-8 w-8"
+										>
+											<RefreshCw class="h-3.5 w-3.5 {blogLoading ? 'animate-spin' : ''}" />
+										</Button>
+									</div>
 								</div>
-								<div class="flex items-end">
-									<Button variant="outline" onclick={loadBlogPosts} disabled={blogLoading}>
-										<RefreshCw class="mr-2 h-4 w-4 {blogLoading ? 'animate-spin' : ''}" />
-										Refresh
-									</Button>
-								</div>
-							</div>
 
-							{#if blogLoading}
-								<div class="py-12 text-center">
-									<div
-										class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"
-									></div>
-									<p class="mt-2 text-gray-600">Loading blog posts...</p>
-								</div>
-							{:else if blogPosts.length === 0}
-								<div class="py-12 text-center">
-									<PenTool class="mx-auto h-12 w-12 text-gray-400" />
-									<h3 class="mt-4 text-lg font-medium text-gray-900">No blog posts yet</h3>
-									<p class="mt-2 text-gray-500">Get started by creating your first blog post.</p>
-									<Button class="mt-4" onclick={startNewBlogPost}>
-										<Plus class="mr-2 h-4 w-4" />
-										Create Your First Post
-									</Button>
-								</div>
-							{:else}
-								<div class="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-									{#each blogPosts as post (post.id)}
-										<Card.Root class="transition-shadow hover:shadow-md">
-											<Card.Header class="pb-3">
-												<div class="flex items-start justify-between gap-2">
-													<div class="min-w-0 flex-1">
-														<Card.Title class="truncate text-lg">{post.title}</Card.Title>
-														<div class="mt-1 flex items-center gap-2">
-															<Badge class="{blogCategories[post.category].color} text-xs">
-																{blogCategories[post.category].label}
-															</Badge>
-															<Badge
-																variant={post.status === 'published'
-																	? 'default'
-																	: post.status === 'draft'
-																		? 'secondary'
-																		: 'destructive'}
-																class="text-xs"
-															>
-																{post.status}
-															</Badge>
-														</div>
-													</div>
-													<div class="flex gap-1">
-														<Button size="sm" variant="ghost" onclick={() => editBlogPost(post)}>
-															<Edit class="h-4 w-4" />
-														</Button>
-														<Button
-															size="sm"
-															variant="ghost"
-															onclick={() => deleteBlogPostConfirm(post)}
-															class="text-red-600 hover:text-red-700"
-														>
-															<Trash2 class="h-4 w-4" />
-														</Button>
-													</div>
-												</div>
-											</Card.Header>
-											<Card.Content>
-												<p class="mb-4 line-clamp-3 text-sm text-gray-600">
-													{post.excerpt || truncateHtml(post.content, 120)}
-												</p>
-												<div class="flex items-center justify-between text-xs text-gray-500">
-													<div class="flex items-center gap-3">
-														<span class="flex items-center gap-1">
-															<Calendar class="h-3 w-3" />
-															{formatDate(post.created_at || '')}
-														</span>
-														<span class="flex items-center gap-1">
-															<Clock class="h-3 w-3" />
-															{post.reading_time}m read
-														</span>
-													</div>
-													{#if post.views}
-														<span class="flex items-center gap-1">
-															<Eye class="h-3 w-3" />
-															{post.views} views
-														</span>
-													{/if}
-												</div>
-												{#if post.tags && post.tags.length > 0}
-													<div class="mt-3 flex flex-wrap gap-1">
-														{#each post.tags.slice(0, 3) as tag (tag)}
+								{#if blogLoading}
+									<div class="py-12 text-center">
+										<div
+											class="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent"
+										></div>
+									</div>
+								{:else if blogPosts.length === 0}
+									<div class="py-12 text-center">
+										<FileText class="mx-auto h-10 w-10 text-gray-300" />
+										<h3 class="mt-4 text-sm font-medium text-gray-900">No posts found</h3>
+										<p class="mt-1 text-sm text-gray-500">
+											Get started by creating your first blog post.
+										</p>
+									</div>
+								{:else}
+									<Table.Root>
+										<Table.Header>
+											<Table.Row>
+												<Table.Head class="w-[400px]">Title</Table.Head>
+												<Table.Head>Status</Table.Head>
+												<Table.Head>Category</Table.Head>
+												<Table.Head>Views</Table.Head>
+												<Table.Head class="text-right">Created</Table.Head>
+												<Table.Head class="w-[50px]"></Table.Head>
+											</Table.Row>
+										</Table.Header>
+										<Table.Body>
+											{#each blogPosts as post (post.id)}
+												<Table.Row class="group">
+													<Table.Cell class="font-medium">
+														<div class="flex flex-col">
+															<span class="truncate">{post.title}</span>
 															<span
-																class="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs text-gray-700"
+																class="max-w-[300px] truncate text-xs font-normal text-gray-500"
 															>
-																<Tag class="h-3 w-3" />
-																{tag}
+																/{post.slug}
 															</span>
-														{/each}
-														{#if post.tags.length > 3}
-															<span class="text-xs text-gray-500">+{post.tags.length - 3} more</span
-															>
-														{/if}
-													</div>
-												{/if}
-											</Card.Content>
-										</Card.Root>
-									{/each}
-								</div>
-							{/if}
-						</Card.Content>
-					</Card.Root>
+														</div>
+													</Table.Cell>
+													<Table.Cell>
+														<div class="flex items-center gap-2">
+															<div
+																class="h-2 w-2 rounded-full {post.status === 'published'
+																	? 'bg-emerald-500'
+																	: post.status === 'draft'
+																		? 'bg-zinc-300'
+																		: 'bg-red-500'}"
+															></div>
+															<span class="text-xs text-gray-600 capitalize">{post.status}</span>
+														</div>
+													</Table.Cell>
+													<Table.Cell>
+														<Badge variant="outline" class="text-xs font-normal">
+															{blogCategories[post.category].label}
+														</Badge>
+													</Table.Cell>
+													<Table.Cell>
+														<span class="text-xs text-gray-500">{post.views || 0}</span>
+													</Table.Cell>
+													<Table.Cell class="text-right">
+														<span class="text-xs text-gray-500">
+															{new Date(post.created_at || '').toLocaleDateString()}
+														</span>
+													</Table.Cell>
+													<Table.Cell>
+														<DropdownMenu.Root>
+															<DropdownMenu.Trigger asChild let:builder>
+																<Button
+																	builders={[builder]}
+																	variant="ghost"
+																	size="icon"
+																	class="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
+																>
+																	<MoreHorizontal class="h-3.5 w-3.5" />
+																</Button>
+															</DropdownMenu.Trigger>
+															<DropdownMenu.Content align="end">
+																<DropdownMenu.Item onclick={() => editBlogPost(post)}>
+																	<Edit class="mr-2 h-3.5 w-3.5" />
+																	Edit
+																</DropdownMenu.Item>
+																<DropdownMenu.Item
+																	onclick={() => deleteBlogPostConfirm(post)}
+																	class="text-red-600 focus:text-red-600"
+																>
+																	<Trash2 class="mr-2 h-3.5 w-3.5" />
+																	Delete
+																</DropdownMenu.Item>
+															</DropdownMenu.Content>
+														</DropdownMenu.Root>
+													</Table.Cell>
+												</Table.Row>
+											{/each}
+										</Table.Body>
+									</Table.Root>
+								{/if}
+							</Card.Content>
+						</Card.Root>
+					</div>
 				{/if}
 			</Tabs.Content>
 
 			<!-- Stats Section -->
 			<Tabs.Content value="stats" class="space-y-6">
 				<Card.Root class="border-0 shadow-lg">
-					<Card.Header class="border-b bg-gradient-to-r from-emerald-50 to-teal-50">
-						<Card.Title class="flex items-center gap-2 text-xl">
-							<BarChart3 class="h-5 w-5 text-emerald-600" />
-							Statistics
-						</Card.Title>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-lg font-semibold tracking-tight">Statistics</Card.Title>
 						<Card.Description>
 							Key numbers that showcase your experience and achievements
 						</Card.Description>
@@ -1070,11 +1067,8 @@
 			<!-- About Section -->
 			<Tabs.Content value="about" class="space-y-6">
 				<Card.Root class="border-0 shadow-lg">
-					<Card.Header class="border-b bg-gradient-to-r from-purple-50 to-pink-50">
-						<Card.Title class="flex items-center gap-2 text-xl">
-							<FileText class="h-5 w-5 text-purple-600" />
-							About Section
-						</Card.Title>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-lg font-semibold tracking-tight">About Section</Card.Title>
 						<Card.Description>Tell your story and highlight your expertise</Card.Description>
 					</Card.Header>
 					<Card.Content class="pt-6">
@@ -1171,11 +1165,8 @@
 			<!-- Services Section -->
 			<Tabs.Content value="services" class="space-y-6">
 				<Card.Root class="border-0 shadow-lg">
-					<Card.Header class="border-b bg-gradient-to-r from-orange-50 to-red-50">
-						<Card.Title class="flex items-center gap-2 text-xl">
-							<Briefcase class="h-5 w-5 text-orange-600" />
-							Services
-						</Card.Title>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-lg font-semibold tracking-tight">Services</Card.Title>
 						<Card.Description>The services you offer to clients</Card.Description>
 					</Card.Header>
 					<Card.Content class="pt-6">
@@ -1254,11 +1245,8 @@
 			<!-- Projects Section -->
 			<Tabs.Content value="projects" class="space-y-6">
 				<Card.Root class="border-0 shadow-lg">
-					<Card.Header class="border-b bg-gradient-to-r from-cyan-50 to-blue-50">
-						<Card.Title class="flex items-center gap-2 text-xl">
-							<FolderOpen class="h-5 w-5 text-cyan-600" />
-							Projects
-						</Card.Title>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-lg font-semibold tracking-tight">Projects</Card.Title>
 						<Card.Description>Showcase your best work and achievements</Card.Description>
 					</Card.Header>
 					<Card.Content class="pt-6">
@@ -1396,11 +1384,10 @@
 			<!-- Skills Section -->
 			<Tabs.Content value="skills" class="space-y-6">
 				<Card.Root class="border-0 shadow-lg">
-					<Card.Header class="border-b bg-gradient-to-r from-indigo-50 to-purple-50">
-						<Card.Title class="flex items-center gap-2 text-xl">
-							<Cpu class="h-5 w-5 text-indigo-600" />
-							Skills & Proficiency
-						</Card.Title>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-lg font-semibold tracking-tight"
+							>Skills & Proficiency</Card.Title
+						>
 						<Card.Description>Your technical skills and expertise levels</Card.Description>
 					</Card.Header>
 					<Card.Content class="pt-6">
@@ -1465,11 +1452,8 @@
 			<!-- Experience Section -->
 			<Tabs.Content value="experience" class="space-y-6">
 				<Card.Root class="border-0 shadow-lg">
-					<Card.Header class="border-b bg-gradient-to-r from-green-50 to-emerald-50">
-						<Card.Title class="flex items-center gap-2 text-xl">
-							<Award class="h-5 w-5 text-green-600" />
-							Work Experience
-						</Card.Title>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-lg font-semibold tracking-tight">Work Experience</Card.Title>
 						<Card.Description>Your professional experience and achievements</Card.Description>
 					</Card.Header>
 					<Card.Content class="pt-6">
@@ -1605,11 +1589,9 @@
 			<!-- Contact Section -->
 			<Tabs.Content value="contact" class="space-y-6">
 				<Card.Root class="border-0 shadow-lg">
-					<Card.Header class="border-b bg-gradient-to-r from-pink-50 to-rose-50">
-						<Card.Title class="flex items-center gap-2 text-xl">
-							<Mail class="h-5 w-5 text-pink-600" />
-							Contact Information
-						</Card.Title>
+					<Card.Header class="pb-2">
+						<Card.Title class="text-lg font-semibold tracking-tight">Contact Information</Card.Title
+						>
 						<Card.Description>How people can reach you and connect with you</Card.Description>
 					</Card.Header>
 					<Card.Content class="pt-6">
