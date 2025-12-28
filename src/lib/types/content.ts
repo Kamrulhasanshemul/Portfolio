@@ -4,6 +4,10 @@ export interface Skill {
 }
 
 export interface Hero {
+	name: string;
+	role: string;
+	headline: string;
+	subheadline: string;
 	title: string;
 	subtitle: string;
 	description: string;

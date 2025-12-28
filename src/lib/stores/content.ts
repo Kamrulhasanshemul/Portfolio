@@ -3,6 +3,10 @@ import type { Content } from '$lib/types/content';
 
 const defaultContent: Content = {
 	hero: {
+		name: 'John Doe',
+		role: 'Data Analyst',
+		headline: 'Turning Numbers into Insights',
+		subheadline: 'Specializing in business intelligence and predictive modeling',
 		title: 'Data Analyst',
 		subtitle: 'Turning Numbers into Insights',
 		description:
@@ -151,6 +155,7 @@ function createContentStore() {
 
 	return {
 		subscribe,
+		set,
 		init: async () => {
 			if (initialized) {
 				console.log('Content store already initialized');
