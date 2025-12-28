@@ -7,6 +7,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import * as Card from '$lib/components/ui/card';
 	import { Trash2, Plus } from '@lucide/svelte';
+	import ImageUpload from './ImageUpload.svelte';
 	import type { Content } from '$lib/types/content';
 
 	let { content = $bindable(), onChange } = $props<{
@@ -32,33 +33,42 @@
 			<Card.Content class="space-y-4 pt-6">
 				<div class="grid gap-4 md:grid-cols-2">
 					<div>
-						<Label>Name</Label><Input
-							bind:value={content.hero.name}
+						<Label>Main Heading (Title)</Label><Input
+							bind:value={content.hero.title}
 							oninput={onChange}
+							placeholder="e.g. Data Analyst"
 							class="mt-1"
 						/>
 					</div>
 					<div>
-						<Label>Role</Label><Input
-							bind:value={content.hero.role}
+						<Label>Sub Heading (Subtitle)</Label><Input
+							bind:value={content.hero.subtitle}
 							oninput={onChange}
+							placeholder="e.g. Turning Numbers into Insights"
 							class="mt-1"
 						/>
 					</div>
 				</div>
 				<div>
-					<Label>Headline</Label><Textarea
-						bind:value={content.hero.headline}
+					<Label>Description</Label><Textarea
+						bind:value={content.hero.description}
 						oninput={onChange}
 						class="mt-1"
 					/>
 				</div>
 				<div>
-					<Label>Subheadline</Label><Textarea
-						bind:value={content.hero.subheadline}
-						oninput={onChange}
-						class="mt-1"
-					/>
+					<Label>Profile Image</Label>
+					<div class="mt-1">
+						<ImageUpload
+							bind:value={content.hero.profileImage}
+							path="profile"
+							label="Upload Profile Picture"
+						/>
+						<!-- Trigger onChange when value changes -->
+						<div class="hidden">
+							{content.hero.profileImage ? onChange() : ''}
+						</div>
+					</div>
 				</div>
 			</Card.Content>
 		</Card.Root>

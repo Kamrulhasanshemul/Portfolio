@@ -332,6 +332,9 @@
 										<Button variant="ghost" size="icon" onclick={() => editBlogPost(post)}>
 											<Edit class="h-4 w-4" />
 										</Button>
+										<Button variant="ghost" size="icon" onclick={() => deleteBlogPostConfirm(post)}>
+											<Trash2 class="h-4 w-4 text-red-500" />
+										</Button>
 									</Table.Cell>
 								</Table.Row>
 							{/each}

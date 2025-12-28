@@ -37,6 +37,10 @@
 	let activeSection = $state('overview');
 	let isSidebarOpen = $state(true);
 
+	$effect(() => {
+		console.log('activeSection changed to:', activeSection);
+	});
+
 	const sidebarItems = [
 		{ id: 'overview', label: 'Overview', icon: LayoutDashboard },
 		{ id: 'content', label: 'Blog Posts', icon: PenTool },
@@ -233,12 +237,16 @@
 				</div>
 			{:else if currentContent}
 				{#if activeSection === 'overview'}
+					<!-- {console.log('Rendering Overview')} -->
 					<Overview bind:content={currentContent} onChange={handleChange} />
 				{:else if activeSection === 'content'}
+					<!-- {console.log('Rendering BlogManager')} -->
 					<BlogManager content={currentContent} />
 				{:else if activeSection === 'profile'}
+					<!-- {console.log('Rendering ProfileManager')} -->
 					<ProfileManager bind:content={currentContent} onChange={handleChange} />
 				{:else if activeSection === 'portfolio'}
+					<!-- {console.log('Rendering PortfolioManager')} -->
 					<PortfolioManager bind:content={currentContent} onChange={handleChange} />
 				{/if}
 			{/if}

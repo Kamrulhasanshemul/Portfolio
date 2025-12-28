@@ -1,9 +1,14 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { AdminService } from '$lib/admin';
+import { createSessionToken } from '$lib/server/auth';
 
 // GET - List all admin users
-export const GET: RequestHandler = async () => {
+export const GET: RequestHandler = async ({ locals }) => {
+	if (!locals.user) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
 	try {
 		const result = await AdminService.getAdminUsers();
 
@@ -19,12 +24,17 @@ export const GET: RequestHandler = async () => {
 };
 
 // POST - Create new admin user
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 	try {
 		const { action, ...data } = await request.json();
 
 		switch (action) {
 			case 'create': {
+				// Only authenticated admins can create new admins
+				if (!locals.user) {
+					return json({ error: 'Unauthorized' }, { status: 401 });
+				}
+
 				const createResult = await AdminService.createAdmin({
 					username: data.username,
 					email: data.email,
@@ -46,6 +56,16 @@ export const POST: RequestHandler = async ({ request }) => {
 				const authResult = await AdminService.authenticateAdmin(data.username, data.password);
 
 				if (authResult.success) {
+					// Create and set session cookie
+					const token = createSessionToken(data.username);
+					cookies.set('session', token, {
+						path: '/',
+						httpOnly: true,
+						sameSite: 'strict',
+						secure: process.env.NODE_ENV === 'production',
+						maxAge: 60 * 60 * 24 // 1 day
+					});
+
 					return json({
 						message: authResult.message,
 						user: authResult.user
@@ -56,6 +76,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 
 			case 'initialize': {
+				// Initialize should strictly check if system is already initialized too?
+				// AdminService.initializeAdminTable() handles idempotent creation, but createDefaultAdmin might fail.
 				const initResult = await AdminService.initializeAdminTable();
 				if (initResult) {
 					const adminResult = await AdminService.createDefaultAdmin();
@@ -76,7 +98,11 @@ export const POST: RequestHandler = async ({ request }) => {
 };
 
 // PUT - Update admin user
-export const PUT: RequestHandler = async ({ request }) => {
+export const PUT: RequestHandler = async ({ request, locals }) => {
+	if (!locals.user) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
 	try {
 		const { id, ...updates } = await request.json();
 
@@ -101,7 +127,11 @@ export const PUT: RequestHandler = async ({ request }) => {
 };
 
 // DELETE - Delete admin user
-export const DELETE: RequestHandler = async ({ request }) => {
+export const DELETE: RequestHandler = async ({ request, locals }) => {
+	if (!locals.user) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
+
 	try {
 		const { id } = await request.json();
 

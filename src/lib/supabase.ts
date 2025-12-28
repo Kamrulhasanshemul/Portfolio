@@ -138,3 +138,78 @@ export class ContentService {
 		}
 	}
 }
+// Storage operations
+export class StorageService {
+	private static BUCKET_NAME = 'portfolio';
+
+	// Upload image to storage
+	static async uploadImage(file: File, path: string = 'uploads') {
+		try {
+			console.log(`Uploading file ${file.name} to ${path}...`);
+
+			// Create a unique filename to avoid collisions
+			const timestamp = Date.now();
+			const fileExt = file.name.split('.').pop();
+			const fileName = `${timestamp}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+			const filePath = `${path}/${fileName}`;
+
+			const { data, error } = await supabase.storage
+				.from(this.BUCKET_NAME)
+				.upload(filePath, file, {
+					cacheControl: '3600',
+					upsert: false
+				});
+
+			if (error) {
+				console.error('Error uploading image:', error);
+				// Check if bucket exists, if not try to default or create? 
+				// NOTE: Buckets usually need to be created in dashboard or via SQL.
+				return { success: false, error };
+			}
+
+			// Get public URL
+			const { data: { publicUrl } } = supabase.storage
+				.from(this.BUCKET_NAME)
+				.getPublicUrl(filePath);
+
+			return { success: true, url: publicUrl, path: filePath };
+		} catch (err) {
+			console.error('Unexpected error uploading image:', err);
+			return { success: false, error: err };
+		}
+	}
+
+	// Delete image from storage
+	static async deleteImage(urlOrPath: string) {
+		try {
+			// Extract path from URL if needed, or use as is
+			let path = urlOrPath;
+			if (urlOrPath.startsWith('http')) {
+				// Try to extract relative path after bucket name
+				const urlParts = urlOrPath.split(`${this.BUCKET_NAME}/`);
+				if (urlParts.length > 1) {
+					path = urlParts[1];
+				} else {
+					// Fallback for different URL structures or just return if not our bucket
+					console.warn('Could not extract path from URL:', urlOrPath);
+					return { success: false, error: 'User provided external URL' };
+				}
+			}
+
+			console.log(`Deleting image at ${path}...`);
+			const { error } = await supabase.storage
+				.from(this.BUCKET_NAME)
+				.remove([path]);
+
+			if (error) {
+				console.error('Error deleting image:', error);
+				return { success: false, error };
+			}
+
+			return { success: true };
+		} catch (err) {
+			console.error('Unexpected error deleting image:', err);
+			return { success: false, error: err };
+		}
+	}
+}
