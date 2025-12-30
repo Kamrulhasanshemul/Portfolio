@@ -1,5 +1,5 @@
 import { env } from '$env/dynamic/private';
-import { createHmac, randomBytes } from 'crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 
 const SESSION_SECRET = env.SESSION_SECRET || 'default-insecure-secret-please-change';
 
