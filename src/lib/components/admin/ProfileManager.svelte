@@ -63,11 +63,8 @@
 							bind:value={content.hero.profileImage}
 							path="profile"
 							label="Upload Profile Picture"
+							{onChange}
 						/>
-						<!-- Trigger onChange when value changes -->
-						<div class="hidden">
-							{content.hero.profileImage ? onChange() : ''}
-						</div>
 					</div>
 				</div>
 			</Card.Content>

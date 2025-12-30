@@ -94,3 +94,46 @@ export const POST: RequestHandler = async ({ request, locals }) => {
         }, { status: 500 });
     }
 };
+
+export const DELETE: RequestHandler = async ({ request, locals }) => {
+    if (!locals.user) {
+        return json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const { url } = await request.json();
+        if (!url) {
+            return json({ error: 'URL is required' }, { status: 400 });
+        }
+
+        const supabaseUrl = ENV.SUPABASE_URL;
+        const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY || ENV.SUPABASE_KEY;
+
+        const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+            auth: {
+                autoRefreshToken: false,
+                persistSession: false
+            }
+        });
+
+        // Extract path from URL
+        // Expected format: .../storage/v1/object/public/images/path/to/file
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/storage/v1/object/public/images/');
+
+        if (pathParts.length > 1) {
+            const path = pathParts[1];
+            const { error } = await supabaseAdmin.storage.from('images').remove([path]);
+
+            if (error) {
+                console.error('Supabase delete error:', error);
+                return json({ error: error.message }, { status: 500 });
+            }
+        }
+
+        return json({ success: true });
+    } catch (error) {
+        console.error('Delete error:', error);
+        return json({ error: 'Internal server error' }, { status: 500 });
+    }
+};

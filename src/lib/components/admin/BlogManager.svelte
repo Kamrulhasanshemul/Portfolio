@@ -9,7 +9,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import * as Table from '$lib/components/ui/table';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import ImageUpload from '$lib/components/ImageUpload.svelte';
+	import ImageUpload from '$lib/components/admin/ImageUpload.svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import { Plus, Search, RefreshCw, MoreHorizontal, Edit, Trash2 } from '@lucide/svelte';
 
@@ -214,18 +214,9 @@
 				</div>
 
 				<div>
-					<Label>Featured Image URL</Label>
-					<div class="mt-1 flex gap-2">
-						<Input
-							bind:value={editingBlogPost.featured_image}
-							placeholder="https://... (or use upload below)"
-						/>
-					</div>
-					<div class="mt-2">
-						<ImageUpload
-							onUpload={(url) => (editingBlogPost.featured_image = url)}
-							currentImage={editingBlogPost.featured_image}
-						/>
+					<Label>Featured Image</Label>
+					<div class="mt-1">
+						<ImageUpload bind:value={editingBlogPost.featured_image} path="blog-featured" />
 					</div>
 				</div>
 

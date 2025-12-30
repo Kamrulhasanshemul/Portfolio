@@ -7,7 +7,21 @@
 	import * as Card from '$lib/components/ui/card';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { Shield, LogOut, User, Settings, Globe } from '@lucide/svelte';
+	import {
+		Shield,
+		LogOut,
+		User,
+		Settings,
+		Globe,
+		Menu,
+		RefreshCw,
+		Save,
+		Eye
+	} from '@lucide/svelte';
+	import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
+	import { content } from '$lib/stores/content';
+	import { ContentService } from '$lib/supabase';
+	import type { Content } from '$lib/types/content';
 
 	interface AuthState {
 		isAuthenticated: boolean;
@@ -15,13 +29,36 @@
 		user: { username: string } | null;
 	}
 
-	let authState: AuthState = { isAuthenticated: false, initialized: false, user: null };
+	let authState: AuthState = $state({ isAuthenticated: false, initialized: false, user: null });
+	let isSidebarOpen = $state(true);
+	let isLoadingContent = $state(false);
 
 	onMount(() => {
 		if (browser) {
 			auth.checkAuth();
+			loadGlobalContent();
 		}
 	});
+
+	// Global content loader
+	async function loadGlobalContent() {
+		if ($content && Object.keys($content).length > 0) return; // Already loaded
+
+		isLoadingContent = true;
+		try {
+			const dbContent = await ContentService.getContent();
+			if (dbContent) {
+				console.log('Admin Layout: Loaded content from Supabase');
+				content.set(dbContent);
+			} else {
+				console.log('Admin Layout: Using local/default content');
+			}
+		} catch (error) {
+			console.error('Admin Layout: Error loading content:', error);
+		} finally {
+			isLoadingContent = false;
+		}
+	}
 
 	auth.subscribe((state) => {
 		authState = state;
@@ -33,7 +70,7 @@
 			if (!state.isAuthenticated && currentPath !== '/admin/login') {
 				goto('/admin/login');
 			} else if (state.isAuthenticated && currentPath === '/admin/login') {
-				goto('/admin');
+				goto('/admin/overview');
 			}
 		}
 	});
@@ -45,6 +82,15 @@
 
 	function goHome() {
 		window.open('/', '_blank');
+	}
+
+	// Helper to get title from path
+	function getPageTitle(path: string) {
+		if (path.includes('overview')) return 'Overview';
+		if (path.includes('blog')) return 'Blog Posts';
+		if (path.includes('profile')) return 'Profile';
+		if (path.includes('portfolio')) return 'Portfolio';
+		return 'Admin Panel';
 	}
 </script>
 
@@ -67,79 +113,66 @@
 	</div>
 {:else if authState.isAuthenticated && $page.url.pathname !== '/admin/login'}
 	<!-- Modern Admin Layout -->
-	<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-		<!-- Enhanced Navigation Header -->
-		<nav
-			class="sticky top-0 z-50 border-b bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/85"
-		>
-			<div class="container mx-auto px-6 py-4">
-				<div class="flex items-center justify-between">
-					<!-- Left Side - Branding & Status -->
-					<div class="flex items-center gap-6">
-						<div class="flex items-center gap-3">
-							<div
-								class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-white"
-							>
-								<Shield class="h-5 w-5" />
-							</div>
-							<div>
-								<h1 class="text-xl font-bold text-gray-900">Admin Panel</h1>
-								<p class="text-xs text-gray-500">Portfolio Management</p>
-							</div>
-						</div>
-
-						<Badge variant="secondary" class="hidden items-center gap-1 text-xs md:flex">
-							<div class="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
-							System Online
-						</Badge>
-					</div>
-
-					<!-- Right Side - User Menu & Actions -->
-					<div class="flex items-center gap-4">
-						<Button variant="ghost" size="sm" onclick={goHome} class="hidden md:flex">
-							<Globe class="h-4 w-4" />
-							View Site
-						</Button>
-
-						{#if authState.user}
-							<div class="flex items-center gap-3">
-								<div class="hidden items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 md:flex">
-									<User class="h-4 w-4 text-gray-600" />
-									<span class="text-sm font-medium text-gray-700">
-										{authState.user.username}
-									</span>
-								</div>
-
-								<Button variant="outline" size="sm" onclick={handleLogout} class="group">
-									<LogOut class="h-4 w-4 transition-colors group-hover:text-red-600" />
-									<span class="ml-2 hidden md:inline">Logout</span>
-								</Button>
-							</div>
-						{/if}
-					</div>
-				</div>
-			</div>
-		</nav>
+	<div class="flex h-screen bg-gray-50">
+		<AdminSidebar isOpen={isSidebarOpen} onToggle={() => (isSidebarOpen = !isSidebarOpen)} />
 
 		<!-- Main Content Area -->
-		<main class="min-h-[calc(100vh-80px)]">
-			<slot />
-		</main>
-
-		<!-- Footer -->
-		<footer class="border-t bg-white/50">
-			<div class="container mx-auto px-6 py-4">
-				<div class="flex items-center justify-between text-sm text-gray-500">
-					<div class="flex items-center gap-2">
-						<Settings class="h-4 w-4" />
-						<span>Portfolio CMS v2.0</span>
-					</div>
-					<div>
-						<span>Last accessed: {new Date().toLocaleDateString()}</span>
-					</div>
+		<main
+			class="flex-1 overflow-y-auto {isSidebarOpen
+				? 'md:ml-64'
+				: 'md:ml-20'} transition-all duration-300"
+		>
+			<!-- Header -->
+			<header
+				class="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-white px-6 shadow-sm"
+			>
+				<div class="flex items-center gap-4">
+					{#if !isSidebarOpen}
+						<Button
+							variant="ghost"
+							size="icon"
+							onclick={() => (isSidebarOpen = true)}
+							class="md:hidden"
+						>
+							<Menu class="h-5 w-5" />
+						</Button>
+					{/if}
+					<h1 class="text-xl font-semibold text-gray-800">{getPageTitle($page.url.pathname)}</h1>
 				</div>
+
+				<!-- Right Side - User Menu & Actions -->
+				<div class="flex items-center gap-4">
+					{#if authState.user}
+						<div class="flex items-center gap-3">
+							<div class="hidden items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 md:flex">
+								<User class="h-4 w-4 text-gray-600" />
+								<span class="text-sm font-medium text-gray-700">
+									{authState.user.username}
+								</span>
+							</div>
+
+							<Button variant="outline" size="sm" onclick={handleLogout} class="group">
+								<LogOut class="h-4 w-4 transition-colors group-hover:text-red-600" />
+								<span class="ml-2 hidden md:inline">Logout</span>
+							</Button>
+						</div>
+					{/if}
+				</div>
+			</header>
+
+			<div class="min-h-[calc(100vh-64px)] p-6">
+				{#if isLoadingContent}
+					<div class="flex h-64 items-center justify-center">
+						<div class="text-center">
+							<RefreshCw class="mx-auto mb-4 h-8 w-8 animate-spin text-blue-500" />
+							<p class="text-gray-500">Loading content data...</p>
+						</div>
+					</div>
+				{:else}
+					<slot />
+				{/if}
 			</div>
-		</footer>
+		</main>
 	</div>
 {:else}
 	<!-- Login Page Container -->

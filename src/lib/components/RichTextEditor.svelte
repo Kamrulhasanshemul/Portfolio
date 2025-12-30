@@ -21,12 +21,16 @@
 		Image as ImageIcon
 	} from '@lucide/svelte';
 
+	import { Loader2 } from '@lucide/svelte';
+
 	export let content: string = '';
 	export const placeholder: string = 'Start writing your blog post...';
 	export let readonly: boolean = false;
 
 	let element: HTMLElement;
 	let editor: Editor;
+	let fileInput: HTMLInputElement;
+	let uploading = false;
 
 	onMount(() => {
 		editor = new Editor({
@@ -113,9 +117,50 @@
 	}
 
 	function addImage() {
-		const url = window.prompt('Enter image URL:');
-		if (url) {
-			editor.chain().focus().setImage({ src: url }).run();
+		fileInput.click();
+	}
+
+	async function handleImageUpload(event: Event) {
+		const target = event.target as HTMLInputElement;
+		const file = target.files?.[0];
+		if (!file) return;
+
+		// Basic validation
+		if (!file.type.startsWith('image/')) {
+			alert('Please upload an image file');
+			return;
+		}
+		if (file.size > 5 * 1024 * 1024) {
+			alert('Image size should be less than 5MB');
+			return;
+		}
+
+		uploading = true;
+
+		try {
+			const formData = new FormData();
+			formData.append('file', file);
+			formData.append('path', 'blog-images');
+
+			const response = await fetch('/api/upload', {
+				method: 'POST',
+				body: formData
+			});
+
+			const result = await response.json();
+
+			if (result.success) {
+				editor.chain().focus().setImage({ src: result.url }).run();
+			} else {
+				alert(result.error || 'Upload failed');
+			}
+		} catch (err) {
+			console.error('Upload error:', err);
+			alert('Failed to upload image');
+		} finally {
+			uploading = false;
+			// Reset input
+			if (fileInput) fileInput.value = '';
 		}
 	}
 </script>
@@ -277,14 +322,27 @@
 				<button
 					type="button"
 					onclick={addImage}
+					disabled={uploading}
 					class="rounded p-1.5 transition-colors hover:bg-gray-200"
 					title="Add Image"
 				>
-					<ImageIcon size={16} />
+					{#if uploading}
+						<Loader2 size={16} class="animate-spin" />
+					{:else}
+						<ImageIcon size={16} />
+					{/if}
 				</button>
 			</div>
 		</div>
 	{/if}
+
+	<input
+		type="file"
+		accept="image/*"
+		class="hidden"
+		bind:this={fileInput}
+		onchange={handleImageUpload}
+	/>
 
 	<!-- Editor Content -->
 	<div

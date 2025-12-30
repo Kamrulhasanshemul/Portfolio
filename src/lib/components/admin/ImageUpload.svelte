@@ -9,11 +9,13 @@
 	let {
 		value = $bindable(''),
 		path = 'uploads',
-		label = 'Image'
+		label = 'Image',
+		onChange
 	} = $props<{
 		value: string;
 		path?: string;
 		label?: string;
+		onChange?: () => void;
 	}>();
 
 	let fileInput: HTMLInputElement;
@@ -63,6 +65,7 @@
 
 			if (result.success) {
 				value = result.url; // Update bindable value
+				onChange?.();
 			} else {
 				error = result.error || 'Upload failed';
 			}
@@ -95,8 +98,27 @@
 		}
 	}
 
-	function removeImage() {
+	async function removeImage() {
+		if (!value) return;
+
+		// If it's a remote URL (Supabase storage), try to delete it
+		if (value.startsWith('http')) {
+			try {
+				await fetch('/api/upload', {
+					method: 'DELETE',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ url: value })
+				});
+			} catch (err) {
+				console.error('Failed to delete image:', err);
+				// Continue to remove from UI even if delete fails
+			}
+		}
+
 		value = '';
+		dispatch('remove');
+		dispatch('change', { url: '' });
+		onChange?.();
 	}
 </script>
 
@@ -123,7 +145,15 @@
 				class="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
 			>
 				<Button variant="secondary" size="sm" onclick={() => fileInput.click()}>Replace</Button>
-				<Button variant="destructive" size="icon" class="h-8 w-8" onclick={removeImage}>
+				<Button
+					variant="destructive"
+					size="icon"
+					class="h-8 w-8"
+					onclick={(e) => {
+						e.preventDefault();
+						removeImage();
+					}}
+				>
 					<X class="h-4 w-4" />
 				</Button>
 			</div>
