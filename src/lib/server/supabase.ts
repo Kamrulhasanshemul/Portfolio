@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { dev } from '$app/environment';
 import { ENV } from '$lib/env';
 import { env } from '$env/dynamic/private';
 
