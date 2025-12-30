@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import { Upload, X, Image as ImageIcon } from '@lucide/svelte';
+	import { ImageService, supabase } from '$lib/supabase';
 
 	export let value: string = '';
 	export let placeholder: string = 'Upload an image';
@@ -17,75 +18,99 @@
 	let dragOver = false;
 	let uploading = false;
 	let preview = value;
+	let uploadError = '';
+	let uploadProgress = 0; // Simulated progress as fetch doesn't support it easily without XHR
 
 	$: preview = value;
 
-	function handleFileSelect(files: FileList | null) {
+	async function handleFileSelect(files: FileList | null) {
 		if (!files || files.length === 0) return;
 
 		const file = files[0];
+		uploadError = '';
 
 		if (!file.type.startsWith('image/')) {
-			alert('Please select an image file.');
+			uploadError = 'Please select a valid image file (JPG, PNG, WEBP).';
 			return;
 		}
 
 		if (file.size > maxSize) {
-			alert(`File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB.`);
+			uploadError = `File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB.`;
 			return;
 		}
 
-		processImage(file);
+		await processAndUploadImage(file);
 	}
 
-	async function processImage(file: File) {
+	async function processAndUploadImage(file: File) {
 		uploading = true;
+		uploadProgress = 10;
 
 		try {
-			const canvas = document.createElement('canvas');
-			const ctx = canvas.getContext('2d');
-			const img = new Image();
+			// 1. Process Image (Resize/Crop/Compress client-side)
+			const processedBlob = await new Promise<Blob>((resolve, reject) => {
+				const canvas = document.createElement('canvas');
+				const ctx = canvas.getContext('2d');
+				const img = new Image();
 
-			img.onload = () => {
-				// Calculate dimensions
-				let { width, height } = calculateDimensions(img.width, img.height);
+				img.onload = () => {
+					let { width, height } = calculateDimensions(img.width, img.height);
+					canvas.width = width;
+					canvas.height = height;
+					ctx?.drawImage(img, 0, 0, width, height);
 
-				canvas.width = width;
-				canvas.height = height;
+					// Compress
+					canvas.toBlob(
+						(blob) => {
+							if (blob) resolve(blob);
+							else reject(new Error('Canvas to Blob failed'));
+						},
+						'image/jpeg',
+						quality
+					);
+				};
+				img.onerror = () => reject(new Error('Failed to load image'));
+				img.src = URL.createObjectURL(file);
+			});
 
-				// Draw and resize image
-				ctx?.drawImage(img, 0, 0, width, height);
+			uploadProgress = 40;
 
-				// Convert to blob with compression
-				canvas.toBlob(
-					(blob) => {
-						if (blob) {
-							// Create object URL for preview
-							const url = URL.createObjectURL(blob);
-							preview = url;
-							value = url;
+			// 2. Get User
+			const {
+				data: { user }
+			} = await supabase.auth.getUser();
+			if (!user) {
+				throw new Error('You must be logged in to upload images.');
+			}
 
-							// In a real app, you would upload this blob to your storage service
-							// and set the value to the uploaded URL
-							dispatch('upload', { file: blob, url });
-						}
-						uploading = false;
-					},
-					'image/jpeg',
-					quality
-				);
-			};
+			// 3. Upload to Supabase
+			// We cast Blob to File because uploadImage expects File (mostly for name/type)
+			// But ImageService generates a name, so the filename here is just for extension reference if needed.
+			// Actually ImageService uses file.name.split.pop.
+			// Let's create a proper File object.
+			const uploadFile = new File([processedBlob], file.name, { type: 'image/jpeg' });
 
-			img.onerror = () => {
-				alert('Error loading image. Please try another file.');
-				uploading = false;
-			};
+			const result = await ImageService.uploadImage(uploadFile, user.id);
 
-			img.src = URL.createObjectURL(file);
-		} catch (error) {
+			uploadProgress = 90;
+
+			if (result.success && result.data) {
+				preview = result.data.url || '';
+				value = result.data.url || '';
+				dispatch('upload', value);
+				dispatch('change', { url: value }); // Maintain compatibility
+				uploadProgress = 100;
+			} else {
+				throw new Error(result.error || 'Upload failed');
+			}
+		} catch (error: any) {
 			console.error('Error processing image:', error);
-			alert('Error processing image. Please try again.');
+			uploadError = error.message || 'Error uploading image. Please try again.';
+			value = '';
+			preview = '';
+		} finally {
 			uploading = false;
+			uploadProgress = 0;
 		}
 	}
 
@@ -100,10 +125,8 @@
 			const currentRatio = width / height;
 
 			if (currentRatio > targetRatio) {
-				// Image is wider than target ratio
 				width = height * targetRatio;
 			} else {
-				// Image is taller than target ratio
 				height = width / targetRatio;
 			}
 		}
@@ -124,7 +147,7 @@
 
 	function handleDragOver(e: DragEvent) {
 		e.preventDefault();
-		dragOver = true;
+		if (!uploading) dragOver = true;
 	}
 
 	function handleDragLeave(e: DragEvent) {
@@ -135,17 +158,18 @@
 	function handleDrop(e: DragEvent) {
 		e.preventDefault();
 		dragOver = false;
-		handleFileSelect(e.dataTransfer?.files || null);
+		if (!uploading) handleFileSelect(e.dataTransfer?.files || null);
 	}
 
 	function openFileDialog() {
-		fileInput.click();
+		if (!uploading) fileInput.click();
 	}
 
 	function removeImage() {
 		preview = '';
 		value = '';
 		dispatch('remove');
+		dispatch('change', { url: '' });
 	}
 
 	function handleUrlInput(e: Event) {
@@ -153,14 +177,13 @@
 		const url = input.value.trim();
 
 		if (url) {
-			// Validate URL
 			try {
 				new URL(url);
 				preview = url;
 				value = url;
 				dispatch('change', { url });
 			} catch {
-				// Invalid URL, keep old value
+				// Invalid URL
 			}
 		} else {
 			preview = '';
@@ -220,12 +243,21 @@
 			ondrop={handleDrop}
 		>
 			{#if uploading}
-				<div
-					class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"
-				></div>
-				<p class="mt-2 text-sm text-gray-600">Processing image...</p>
+				<div class="py-4 text-center">
+					<div
+						class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"
+					></div>
+					<p class="mt-2 text-sm text-gray-600">Uploading... {uploadProgress}%</p>
+				</div>
 			{:else}
 				<ImageIcon class="mx-auto h-12 w-12 text-gray-400" />
+
+				{#if uploadError}
+					<div class="mt-2 rounded bg-red-50 p-2 text-sm font-medium text-red-500">
+						{uploadError}
+					</div>
+				{/if}
+
 				<div class="mt-4">
 					<button
 						type="button"

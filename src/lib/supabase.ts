@@ -138,78 +138,117 @@ export class ContentService {
 		}
 	}
 }
-// Storage operations
-export class StorageService {
-	private static BUCKET_NAME = 'portfolio';
 
-	// Upload image to storage
-	static async uploadImage(file: File, path: string = 'uploads') {
+import type { ImageMetadata } from './types/image';
+
+export class ImageService {
+	private static BUCKET_NAME = 'images';
+
+	// Image operations
+	static async initializeImageTable() {
 		try {
-			console.log(`Uploading file ${file.name} to ${path}...`);
+			const { error } = await supabase.rpc('create_image_metadata_table');
+			// Note: RPC might not exist, usually tables are created via SQL editor. 
+			// We provided the SQL in 'database/storage_setup.sql'.
+			return !error;
+		} catch (e) { return false; }
+	}
 
-			// Create a unique filename to avoid collisions
-			const timestamp = Date.now();
-			const fileExt = file.name.split('.').pop();
-			const fileName = `${timestamp}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-			const filePath = `${path}/${fileName}`;
-
+	// Get a signed URL for an image path
+	static async getSignedUrl(path: string, expiresIn = 3600): Promise<string | null> {
+		try {
 			const { data, error } = await supabase.storage
 				.from(this.BUCKET_NAME)
-				.upload(filePath, file, {
+				.createSignedUrl(path, expiresIn);
+
+			if (error) {
+				console.error('Error creating signed URL:', error);
+				return null;
+			}
+
+			return data.signedUrl;
+		} catch (err) {
+			console.error('Unexpected error creating signed URL:', err);
+			return null;
+		}
+	}
+
+	// Upload image, store metadata, and return signed URL
+	static async uploadImage(
+		file: File,
+		userId: string
+	): Promise<{ success: boolean; data?: ImageMetadata; error?: string }> {
+		try {
+			// 1. Validate file (double check client-side validation)
+			if (!file.type.startsWith('image/')) {
+				return { success: false, error: 'Invalid file type' };
+			}
+			if (file.size > 5 * 1024 * 1024) {
+				return { success: false, error: 'File size exceeds 5MB' };
+			}
+
+			// 2. Generate Path: /user_id/yyyy/mm/filename
+			const date = new Date();
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0');
+			const ext = file.name.split('.').pop();
+			const uuid = crypto.randomUUID();
+			const filename = `${uuid}.${ext}`;
+			const path = `${userId}/${year}/${month}/${filename}`;
+
+			console.log(`Uploading to ${this.BUCKET_NAME}/${path}...`);
+
+			// 3. Upload to Supabase Storage
+			const { error: uploadError } = await supabase.storage
+				.from(this.BUCKET_NAME)
+				.upload(path, file, {
 					cacheControl: '3600',
 					upsert: false
 				});
 
-			if (error) {
-				console.error('Error uploading image:', error);
-				// Check if bucket exists, if not try to default or create? 
-				// NOTE: Buckets usually need to be created in dashboard or via SQL.
-				return { success: false, error };
+			if (uploadError) {
+				console.error('Supabase upload error:', uploadError);
+				return { success: false, error: uploadError.message };
 			}
 
-			// Get public URL
-			const { data: { publicUrl } } = supabase.storage
-				.from(this.BUCKET_NAME)
-				.getPublicUrl(filePath);
+			// 4. Store Metadata in DB
+			const { error: dbError } = await supabase
+				.from('image_metadata')
+				.insert({
+					user_id: userId,
+					bucket_path: path,
+					mime_type: file.type,
+					file_size: file.size
+				});
 
-			return { success: true, url: publicUrl, path: filePath };
-		} catch (err) {
-			console.error('Unexpected error uploading image:', err);
-			return { success: false, error: err };
-		}
-	}
+			// Note: If DB insert fails, we should technically clean up the file, but we'll skip complex rollback for now.
+			if (dbError) {
+				console.error('Database metadata error:', dbError);
+				// Try to clean up
+				await supabase.storage.from(this.BUCKET_NAME).remove([path]);
+				return { success: false, error: 'Failed to save image metadata' };
+			}
 
-	// Delete image from storage
-	static async deleteImage(urlOrPath: string) {
-		try {
-			// Extract path from URL if needed, or use as is
-			let path = urlOrPath;
-			if (urlOrPath.startsWith('http')) {
-				// Try to extract relative path after bucket name
-				const urlParts = urlOrPath.split(`${this.BUCKET_NAME}/`);
-				if (urlParts.length > 1) {
-					path = urlParts[1];
-				} else {
-					// Fallback for different URL structures or just return if not our bucket
-					console.warn('Could not extract path from URL:', urlOrPath);
-					return { success: false, error: 'User provided external URL' };
+			// 5. Get Signed URL for immediate display
+			const signedUrl = await this.getSignedUrl(path);
+
+			return {
+				success: true,
+				data: {
+					id: uuid, // This is approx, real ID is DB generated but we didn't select it. 
+					// Let's assume we don't need the DB ID immediately for display, just the URL.
+					user_id: userId,
+					bucket_path: path,
+					mime_type: file.type,
+					file_size: file.size,
+					created_at: new Date().toISOString(),
+					url: signedUrl || ''
 				}
-			}
+			};
 
-			console.log(`Deleting image at ${path}...`);
-			const { error } = await supabase.storage
-				.from(this.BUCKET_NAME)
-				.remove([path]);
-
-			if (error) {
-				console.error('Error deleting image:', error);
-				return { success: false, error };
-			}
-
-			return { success: true };
 		} catch (err) {
-			console.error('Unexpected error deleting image:', err);
-			return { success: false, error: err };
+			console.error('Unexpected error in uploadImage:', err);
+			return { success: false, error: 'Unexpected upload failure' };
 		}
 	}
 }
