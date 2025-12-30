@@ -239,6 +239,12 @@
 {:else}
 	<!-- BLOG LIST TABLE -->
 	<div class="space-y-4">
+		{#if blogError}
+			<div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800">
+				Error: {blogError}
+			</div>
+		{/if}
+
 		<div class="flex items-center justify-between">
 			<h2 class="text-lg font-medium">All Posts</h2>
 			<Button onclick={startNewBlogPost}><Plus class="mr-2 h-4 w-4" /> New Post</Button>
