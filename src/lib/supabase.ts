@@ -9,7 +9,13 @@ const supabaseUrl = ENV.SUPABASE_URL;
 const supabaseAnonKey = ENV.SUPABASE_KEY;
 
 // Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+	auth: {
+		persistSession: browser, // Only persist in browser
+		autoRefreshToken: browser,
+		detectSessionInUrl: browser
+	}
+});
 
 // Only log in server environment
 if (!browser) {

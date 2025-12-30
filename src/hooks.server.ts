@@ -3,7 +3,12 @@ import { verifySessionToken } from '$lib/server/auth';
 
 export const handle: Handle = async ({ event, resolve }) => {
     const sessionCookie = event.cookies.get('session');
-    const user = sessionCookie ? verifySessionToken(sessionCookie) : null;
+    let user = null;
+    try {
+        user = sessionCookie ? verifySessionToken(sessionCookie) : null;
+    } catch (err) {
+        console.error('Session verification failed:', err);
+    }
 
     if (user) {
         event.locals.user = user;
