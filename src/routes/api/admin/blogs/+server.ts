@@ -11,7 +11,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
         let query = supabaseAdmin
             .from('blog_posts')
-            .select('*')
+            .select('id, title, slug, status, category, created_at, updated_at, views, published_at, featured_image, author')
             .order('created_at', { ascending: false });
 
         if (category) {
@@ -42,7 +42,11 @@ export const GET: RequestHandler = async ({ url }) => {
             console.log('Admin Blogs API: Warning - 0 rows returned. Check RLS or filters.');
         }
 
-        return json({ success: true, data });
+        return json({ success: true, data }, {
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+            }
+        });
     } catch (error) {
         console.error('Error in admin blogs endpoint:', error);
         return json({ success: false, error: 'Internal server error' }, { status: 500 });

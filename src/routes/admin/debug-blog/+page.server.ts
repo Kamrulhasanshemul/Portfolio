@@ -58,9 +58,26 @@ export const load = async () => {
             debugInfo.sampleData = data || [];
         }
 
+        // 4. Test Internal API fetch (Self-Call)
+        // Note: fetch here is relative to the server request
+        // We can't easily fetch our own API in +page.server.ts load without full URL, 
+        // but we can simulate what the API does by running the exact same code:
+        const { data: apiSimData, error: apiSimError } = await supabaseAdmin
+            .from('blog_posts')
+            .select('*')
+            .limit(5);
+
+        debugInfo.apiSimulation = {
+            success: !apiSimError,
+            rows: apiSimData?.length || 0,
+            error: apiSimError?.message || null,
+            firstRow: apiSimData?.[0]?.title || 'None'
+        };
+
     } catch (e) {
         debugInfo.error = e;
     }
 
     return { debugInfo };
 };
+```

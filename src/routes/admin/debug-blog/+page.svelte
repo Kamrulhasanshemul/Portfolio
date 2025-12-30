@@ -28,6 +28,10 @@
 				>
 			</p>
 			<p>Service Key Present: {debugInfo.serviceKeyAvailable ? 'Yes' : 'No'}</p>
+			<p>
+				API Simulation: {debugInfo.apiSimulation?.rows} rows (First: {debugInfo.apiSimulation
+					?.firstRow})
+			</p>
 		</div>
 
 		{#if debugInfo.error}
