@@ -16,11 +16,18 @@
 		<div class="rounded border bg-gray-50 p-4">
 			<h2 class="font-semibold">Database Connection</h2>
 			<p>
-				Status: <span class={debugInfo.connection === 'Success' ? 'text-green-600' : 'text-red-600'}
+				Public Status: <span
+					class={debugInfo.connection.includes('Success') ? 'text-green-600' : 'text-red-600'}
 					>{debugInfo.connection}</span
 				>
 			</p>
-			<p>Table Check: {debugInfo.tableCheck}</p>
+			<p>
+				Admin Status: <span
+					class={debugInfo.adminConnection.includes('Success') ? 'text-green-600' : 'text-red-600'}
+					>{debugInfo.adminConnection}</span
+				>
+			</p>
+			<p>Service Key Present: {debugInfo.serviceKeyAvailable ? 'Yes' : 'No'}</p>
 		</div>
 
 		{#if debugInfo.error}
