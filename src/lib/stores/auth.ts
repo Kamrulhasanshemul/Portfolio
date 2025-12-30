@@ -52,21 +52,24 @@ const createAuthStore = () => {
 				console.warn('API authentication failed, falling back to default:', error);
 			}
 
-			// Fallback for development
-			const defaultUsername = 'admin';
-			const defaultPassword = 'admin123';
+			// Fallback for development ONLY
+			if (import.meta.env.DEV) {
+				const defaultUsername = 'admin';
+				const defaultPassword = 'admin123';
 
-			if (username === defaultUsername && password === defaultPassword) {
-				set({
-					isAuthenticated: true,
-					user: { username },
-					initialized: true
-				});
-				if (browser) {
-					localStorage.setItem('admin-auth', 'true');
-					localStorage.setItem('admin-user', username);
+				if (username === defaultUsername && password === defaultPassword) {
+					console.warn('Using development fallback login');
+					set({
+						isAuthenticated: true,
+						user: { username },
+						initialized: true
+					});
+					if (browser) {
+						localStorage.setItem('admin-auth', 'true');
+						localStorage.setItem('admin-user', username);
+					}
+					return true;
 				}
-				return true;
 			}
 			return false;
 		},
