@@ -6,9 +6,20 @@ import { env } from '$env/dynamic/private';
 const supabaseUrl = ENV.SUPABASE_URL;
 const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
+if (!supabaseServiceKey && !dev) {
+    console.warn('WARNING: SUPABASE_SERVICE_ROLE_KEY is missing. Admin operations may fail due to RLS.');
+}
+
 // Create a server-side Supabase client with the service role key
 // access to the service role key is strictly limited to server-side code
 export const supabaseAdmin = createClient(
     supabaseUrl,
-    supabaseServiceKey || ENV.SUPABASE_KEY // Fallback to anon key if service key is missing (restricted access)
+    supabaseServiceKey || ENV.SUPABASE_KEY, // Fallback to anon key if service key is missing
+    {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+        }
+    }
 );
