@@ -24,11 +24,22 @@ export const GET: RequestHandler = async ({ url }) => {
 
         query = query.range(offset, offset + limit - 1);
 
+        console.log('Admin Blogs API: Request params:', { category, status, limit, offset });
+
+        // Debug: Check if key is actually being used in this context
+        // We can't easily check the internal key of the client, but we can check the env again if needed, 
+        // though that might be redundant. Trusting the client for now but logging queries.
+
         const { data, error } = await query;
 
         if (error) {
             console.error('Error fetching admin blog posts:', error);
             return json({ success: false, error: error.message }, { status: 500 });
+        }
+
+        console.log(`Admin Blogs API: Fetched ${data?.length} rows`);
+        if (data?.length === 0) {
+            console.log('Admin Blogs API: Warning - 0 rows returned. Check RLS or filters.');
         }
 
         return json({ success: true, data });
