@@ -254,10 +254,14 @@
 				</div>
 
 				<div class="flex items-center gap-2">
-					<Button variant="default" size="sm" class="hidden bg-blue-600 hover:bg-blue-700 sm:flex">
+					<a
+						href="/api/resume/download"
+						download
+						class="hidden inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow transition-colors hover:bg-blue-700 focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 sm:flex"
+					>
 						<Download class="mr-2 h-4 w-4" />
 						Resume
-					</Button>
+					</a>
 
 					<!-- Mobile menu button -->
 					<button
@@ -330,10 +334,14 @@
 							Contact
 						</button>
 						<div class="pt-2">
-							<Button variant="default" size="sm" class="w-full bg-blue-600 hover:bg-blue-700">
+							<a
+								href="/api/resume/download"
+								download
+								class="inline-flex h-9 w-full items-center justify-center rounded-md bg-blue-600 px-3 text-sm font-medium text-white shadow hover:bg-blue-700"
+							>
 								<Download class="mr-2 h-4 w-4" />
 								Download Resume
-							</Button>
+							</a>
 						</div>
 					</div>
 				</div>
@@ -739,10 +747,14 @@
 								<Mail class="mr-2 h-4 w-4" />
 								Send Email
 							</Button>
-							<Button variant="outline" class="px-8 py-3">
+							<a
+								href="/api/resume/download"
+								download
+								class="inline-flex h-10 items-center justify-center rounded-md border border-gray-200 bg-white px-8 py-2 text-sm font-medium transition-colors hover:bg-gray-100 focus-visible:ring-1 focus-visible:ring-gray-950 focus-visible:outline-none"
+							>
 								<Download class="mr-2 h-4 w-4" />
 								Download CV
-							</Button>
+							</a>
 						</div>
 					</div>
 

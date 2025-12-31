@@ -63,6 +63,7 @@ export interface Contact {
 	location: string;
 	github: string;
 	linkedin: string;
+	resumeUrl?: string;
 }
 
 export interface Education {

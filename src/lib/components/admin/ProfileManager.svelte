@@ -7,7 +7,9 @@
 	import { Label } from '$lib/components/ui/label';
 	import * as Card from '$lib/components/ui/card';
 	import { Trash2, Plus } from '@lucide/svelte';
+	import { Trash2, Plus } from '@lucide/svelte';
 	import ImageUpload from './ImageUpload.svelte';
+	import FileUpload from './FileUpload.svelte';
 	import type { Content } from '$lib/types/content';
 
 	let { content = $bindable(), onChange } = $props<{
@@ -129,43 +131,59 @@
 	</section>
 
 	<section>
-		<h3 class="mb-4 text-lg font-medium">Contact Info</h3>
+		<h3 class="mb-4 text-lg font-medium">Contact Information</h3>
 		<Card.Root class="border-0 shadow-sm ring-1 ring-gray-200">
-			<Card.Content class="grid gap-4 pt-6 md:grid-cols-2">
-				<div>
-					<Label>Email</Label><Input
-						bind:value={content.contact.email}
-						oninput={onChange}
-						class="mt-1"
-					/>
-				</div>
-				<div>
-					<Label>Phone</Label><Input
-						bind:value={content.contact.phone}
-						oninput={onChange}
-						class="mt-1"
-					/>
-				</div>
-				<div>
-					<Label>Location</Label><Input
-						bind:value={content.contact.location}
-						oninput={onChange}
-						class="mt-1"
-					/>
-				</div>
-				<div>
-					<Label>GitHub URL</Label><Input
-						bind:value={content.contact.github}
-						oninput={onChange}
-						class="mt-1"
-					/>
-				</div>
-				<div>
-					<Label>LinkedIn URL</Label><Input
-						bind:value={content.contact.linkedin}
-						oninput={onChange}
-						class="mt-1"
-					/>
+			<Card.Content class="space-y-4 pt-6">
+				<div class="grid gap-6 md:grid-cols-2">
+					<div class="space-y-4">
+						<div>
+							<Label>Email</Label><Input
+								bind:value={content.contact.email}
+								oninput={onChange}
+								class="mt-1"
+							/>
+						</div>
+						<div>
+							<Label>Phone</Label><Input
+								bind:value={content.contact.phone}
+								oninput={onChange}
+								class="mt-1"
+							/>
+						</div>
+						<div>
+							<Label>Location</Label><Input
+								bind:value={content.contact.location}
+								oninput={onChange}
+								class="mt-1"
+							/>
+						</div>
+					</div>
+					<div class="space-y-4">
+						<div>
+							<Label>GitHub URL</Label><Input
+								bind:value={content.contact.github}
+								oninput={onChange}
+								class="mt-1"
+							/>
+						</div>
+						<div>
+							<Label>LinkedIn URL</Label><Input
+								bind:value={content.contact.linkedin}
+								oninput={onChange}
+								class="mt-1"
+							/>
+						</div>
+						<div>
+							<Label>Resume (PDF/Doc)</Label>
+							<div class="mt-1">
+								<FileUpload
+									bind:value={content.contact.resumeUrl}
+									label="Upload Resume"
+									{onChange}
+								/>
+							</div>
+						</div>
+					</div>
 				</div>
 			</Card.Content>
 		</Card.Root>
