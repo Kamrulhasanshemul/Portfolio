@@ -96,6 +96,7 @@ export const actions: Actions = {
 
         // Helper to run query
         const runQuery = async (data: any) => {
+            console.log('Running DB Query with payload keys:', Object.keys(data));
             if (id === 'new') {
                 return await supabase.from('project_details').insert(data);
             } else {
@@ -106,76 +107,68 @@ export const actions: Actions = {
         let result = await runQuery(payload);
 
         // Fallback for missing column
-        if (result.error && result.error.message.includes('column') && result.error.message.includes('does not exist')) {
-            console.warn('Column missing in DB, retrying without is_featured...');
-            const { is_featured, ...safePayload } = payload;
-            result = await runQuery(safePayload);
+        if (result.error) {
+            console.error('Initial DB Save Error:', result.error);
+            if (result.error.message.includes('column') && result.error.message.includes('does not exist')) {
+                console.warn('Column missing in DB, retrying without is_featured...');
+                const { is_featured, ...safePayload } = payload;
+                result = await runQuery(safePayload);
+            }
         }
 
-        error = result.error;
-
-        if (error) {
-            console.error('Project Save Error:', error);
-            return { success: false, error: error.message };
+        if (result.error) {
+            console.error('Final Project Save Error:', result.error);
+            return { success: false, error: result.error.message };
         }
 
-        // If new, redirect to list
-        if (id === 'new') {
-            // We need to fetch the inserted ID/Slug to sync correctly if we want to be precise, 
-            // but for now, let's just redirect. The user can edit again to sync if needed, 
-            // OR we do the sync here. Let's do the sync here for better UX.
-        }
+        // If new, redirect to list or stay? 
+        // For now, let's just proceed to sync.
 
         // --- SYNC WITH MAIN SITE JSON (portfolio_content) ---
         try {
+            console.log('Starting Sync with Main Site JSON...');
             // 1. Fetch current content
             const { data: currentContent } = await ContentService.getContent();
 
             if (currentContent) {
                 let projects = currentContent.projects || [];
+                // ... (existing sync logic)
                 const projectIndex = projects.findIndex((p: any) =>
-                    // Try to match by title (fuzzy) or if we had an ID. 
-                    // Since JSON doesn't have IDs, we rely on title matching or slug generation.
-                    // This is imperfect but standard for this hybrid setup.
                     p.title === title ||
                     p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === slug
                 );
 
+                // Construct entry
                 const newProjectEntry = {
                     title: title,
                     description: short_description,
                     technologies: technologies,
-                    impact: results_achieved[0]?.description || 'Impact pending...', // Map first result to impact
-                    link: live_demo_url || `/projects/${slug}`, // Prefer live link, else internal
-                    image: featured_image
+                    impact: results_achieved?.[0]?.description || 'View Case Study',
+                    link: `/projects/${slug}`,
+                    image: featured_image,
+                    featured: is_featured // Add this to sync as well
                 };
 
                 if (projectIndex >= 0) {
-                    // Update existing
                     projects[projectIndex] = newProjectEntry;
                 } else {
-                    // Add new (prepend to show as latest)
-                    projects.unshift(newProjectEntry);
+                    projects.push(newProjectEntry);
                 }
 
-                // 2. Save back to module
                 await ContentService.saveContent({
                     ...currentContent,
                     projects: projects
                 });
-                console.log('Synced project change to Main Site JSON');
+                console.log('Sync to JSON successful');
             }
         } catch (syncErr) {
-            console.error('Error syncing to JSON blob:', syncErr);
-            // Don't fail the request, just log it. The SQL update is the source of truth.
-        }
-
-        if (id === 'new') {
-            throw redirect(303, '/admin/projects');
+            // Do NOT fail the request if sync fails
+            console.error('Warning: Sync to Main Site JSON failed, but DB save was successful.', syncErr);
         }
 
         return { success: true };
     },
+
 
     delete: async ({ params, locals }) => {
         if (!locals.user) throw error(401, 'Unauthorized');
