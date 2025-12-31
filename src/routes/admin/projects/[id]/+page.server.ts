@@ -109,8 +109,14 @@ export const actions: Actions = {
         // Fallback for missing column
         if (result.error) {
             console.error('Initial DB Save Error:', result.error);
-            if (result.error.message.includes('column') && result.error.message.includes('does not exist')) {
-                console.warn('Column missing in DB, retrying without is_featured...');
+            const msg = result.error.message.toLowerCase();
+            // Catch both Postgres "column does not exist" and Postgrest "Could not find..." errors
+            if (
+                (msg.includes('column') && msg.includes('does not exist')) ||
+                msg.includes('could not find the') ||
+                msg.includes('is_featured')
+            ) {
+                console.warn('Column missing in DB (detected via error match), retrying without is_featured...');
                 const { is_featured, ...safePayload } = payload;
                 result = await runQuery(safePayload);
             }
