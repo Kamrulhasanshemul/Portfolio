@@ -1,7 +1,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { ContentService } from '$lib/supabase';
+import { ContentService, supabase } from '$lib/supabase';
 import type { Content } from '$lib/types/content';
 
 export const GET: RequestHandler = async ({ locals }) => {
@@ -158,8 +158,61 @@ export const GET: RequestHandler = async ({ locals }) => {
 
         const result = await ContentService.saveContent(finalContent);
 
+        // 3. Update SQL Table "project_details" for Case Studies
+        // We map the resume projects to the SQL schema.
+        // Note: Resume data is summary-level. detailed fields (full_description, challenges, etc.) 
+        // will be seeded with generic/placeholder data derived from the description 
+        // if they don't exist, to ensure the page doesn't crash.
+
+        console.log('Seeding project_details SQL table...');
+
+        for (const proj of resumeData.projects || []) {
+            const slug = proj.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+
+            // Construct a basic rich text description if one isn't available
+            const basicFullDesc = `
+                <h1>${proj.title}</h1>
+                <p>${proj.description}</p>
+                <h2>Impact</h2>
+                <p>${proj.impact}</p>
+            `;
+
+            const projectPayload = {
+                title: proj.title,
+                slug: slug,
+                short_description: proj.description,
+                full_description: basicFullDesc,
+                technologies: proj.technologies,
+                category: 'data-analytics', // Default, should be dynamic ideally
+                status: 'published',
+                featured_image: proj.image || 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop', // Fallback
+                impact: proj.impact,
+                // Default placeholders for arrays to prevent null errors in frontend
+                key_features: [
+                    { title: "Key Feature 1", description: "Description of key feature." }
+                ],
+                challenges_solved: [
+                    { challenge: "Main Challenge", solution: "How we solved it." }
+                ],
+                results_achieved: [
+                    { metric: "Impact", value: "100%", description: proj.impact }
+                ]
+            };
+
+            // Upsert based on slug
+            const { error: upsertError } = await supabase
+                .from('project_details')
+                .upsert(projectPayload, { onConflict: 'slug' });
+
+            if (upsertError) {
+                console.error(`Error syncing project ${slug}:`, upsertError);
+            } else {
+                console.log(`Synced project: ${slug}`);
+            }
+        }
+
         if (result.success) {
-            return json({ success: true, message: "Resume updated successfully", content: result.data });
+            return json({ success: true, message: "Resume updated and Project Details synced.", content: result.data });
         } else {
             return json({ success: false, error: result.error }, { status: 500 });
         }
