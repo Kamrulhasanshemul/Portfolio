@@ -40,10 +40,18 @@
 				<p class="text-sm text-gray-500">{project.title || 'Untitled Project'}</p>
 			</div>
 		</div>
-		<Button type="submit" form="project-form" disabled={loading}>
-			<Save class="mr-2 h-4 w-4" />
-			Save Changes
-		</Button>
+		<div class="flex gap-2">
+			{#if project.id}
+				<Button variant="destructive" formaction="?/delete" type="submit" disabled={loading}>
+					<Trash2 class="mr-2 h-4 w-4" />
+					Delete
+				</Button>
+			{/if}
+			<Button type="submit" form="project-form" disabled={loading}>
+				<Save class="mr-2 h-4 w-4" />
+				Save Changes
+			</Button>
+		</div>
 	</div>
 
 	<!-- Form -->

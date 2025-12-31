@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { Plus, Pencil, ExternalLink } from '@lucide/svelte';
+	import { Plus, Pencil, ExternalLink, Trash2 } from '@lucide/svelte';
 
 	export let data;
 </script>
@@ -81,6 +81,26 @@
 									>
 										<Pencil class="h-4 w-4 text-blue-600" />
 									</Button>
+									<form
+										action={`/admin/projects/${project.id}?/delete`}
+										method="POST"
+										class="inline"
+									>
+										<Button
+											variant="ghost"
+											size="icon"
+											type="submit"
+											title="Delete"
+											class="hover:bg-red-50"
+											onclick={(e) => {
+												if (!confirm('Are you sure you want to delete this project?')) {
+													e.preventDefault();
+												}
+											}}
+										>
+											<Trash2 class="h-4 w-4 text-red-500" />
+										</Button>
+									</form>
 								</div>
 							</td>
 						</tr>

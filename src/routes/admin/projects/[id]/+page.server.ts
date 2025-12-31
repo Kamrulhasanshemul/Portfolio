@@ -165,5 +165,50 @@ export const actions: Actions = {
         }
 
         return { success: true };
+    },
+
+    delete: async ({ params, locals }) => {
+        if (!locals.user) throw error(401, 'Unauthorized');
+        const { id } = params;
+
+        // 1. Get project details first to know the slug/title for sync
+        const { data: project } = await supabase
+            .from('project_details')
+            .select('title, slug')
+            .eq('id', id)
+            .single();
+
+        // 2. Delete from SQL
+        const { error: deleteError } = await supabase
+            .from('project_details')
+            .delete()
+            .eq('id', id);
+
+        if (deleteError) {
+            return { success: false, error: deleteError.message };
+        }
+
+        // 3. Sync with JSON Blob (Remove it)
+        if (project) {
+            try {
+                const { data: currentContent } = await ContentService.getContent();
+                if (currentContent && currentContent.projects) {
+                    const newProjects = currentContent.projects.filter((p: any) =>
+                        p.title !== project.title &&
+                        p.link !== `/projects/${project.slug}`
+                    );
+
+                    await ContentService.saveContent({
+                        ...currentContent,
+                        projects: newProjects
+                    });
+                    console.log('Removed project from Main Site JSON');
+                }
+            } catch (err) {
+                console.error('Error syncing delete to JSON:', err);
+            }
+        }
+
+        throw redirect(303, '/admin/projects');
     }
 };
