@@ -91,24 +91,7 @@ export const GET: RequestHandler = async ({ locals }) => {
                     description: "CGPA: 3.13"
                 }
             ],
-            projects: [
-                {
-                    title: "Executive Excellence Dashboard",
-                    description: "Executive-level analytics dashboard integrated with PostgreSQL as the single source of truth.",
-                    technologies: ["Looker Studio", "PostgreSQL"],
-                    impact: "Improved decision-making efficiency by 40% through real-time data insights.",
-                    link: "#",
-                    image: ""
-                },
-                {
-                    title: "Operations Excellence Dashboard",
-                    description: "Performance monitoring dashboard to enhance operational efficiency.",
-                    technologies: ["Looker Studio", "PostgreSQL"],
-                    impact: "Helped reduce delivery delays by 25% through weekly performance analysis.",
-                    link: "#",
-                    image: ""
-                }
-            ],
+            projects: [],
             skills: {
                 programming: [
                     { name: "SQL", level: 90 },
