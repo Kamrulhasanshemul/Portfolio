@@ -40,18 +40,6 @@
 				<p class="text-sm text-gray-500">{project.title || 'Untitled Project'}</p>
 			</div>
 		</div>
-		<div class="flex gap-2">
-			{#if project.id}
-				<Button variant="destructive" formaction="?/delete" type="submit" disabled={loading}>
-					<Trash2 class="mr-2 h-4 w-4" />
-					Delete
-				</Button>
-			{/if}
-			<Button type="submit" form="project-form" disabled={loading}>
-				<Save class="mr-2 h-4 w-4" />
-				Save Changes
-			</Button>
-		</div>
 	</div>
 
 	<!-- Form -->
@@ -79,6 +67,18 @@
 		<!-- Main Column -->
 		<div class="space-y-6 lg:col-span-2">
 			<!-- Basic Info -->
+			<div class="flex justify-end gap-2">
+				{#if project.id}
+					<Button variant="destructive" formaction="?/delete" type="submit" disabled={loading}>
+						<Trash2 class="mr-2 h-4 w-4" />
+						Delete
+					</Button>
+				{/if}
+				<Button type="submit" disabled={loading}>
+					<Save class="mr-2 h-4 w-4" />
+					Save Changes
+				</Button>
+			</div>
 			<Card.Root>
 				<Card.Header>
 					<Card.Title>Basic Information</Card.Title>

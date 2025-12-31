@@ -15,9 +15,10 @@ export const load: PageServerLoad = async () => {
             .eq('status', 'published')
             .order('project_date', { ascending: false });
 
-        if (!projectError && sqlProjects && sqlProjects.length > 0) {
+        if (!projectError && sqlProjects) {
             console.log(`Loaded ${sqlProjects.length} projects from SQL.`);
             // Map SQL projects to the UI Project interface
+            // improved: Always overwrite, even if empty, to prevent "zombie" JSON data
             content.projects = sqlProjects.map(p => ({
                 title: p.title,
                 description: p.short_description,
@@ -26,6 +27,8 @@ export const load: PageServerLoad = async () => {
                 link: `/projects/${p.slug}`,
                 image: p.featured_image
             }));
+        } else if (projectError) {
+            console.error('Error fetching projects from SQL:', projectError);
         }
 
         return { content };
