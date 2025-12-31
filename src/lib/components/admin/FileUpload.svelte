@@ -81,7 +81,7 @@
 			<Button
 				variant="ghost"
 				size="icon"
-				on:click={removeFile}
+				onclick={removeFile}
 				class="text-gray-500 hover:text-red-500"
 			>
 				<X class="h-4 w-4" />
@@ -99,7 +99,7 @@
 			<Button
 				variant="outline"
 				class="w-full justify-start"
-				on:click={() => fileInput?.click()}
+				onclick={() => fileInput?.click()}
 				disabled={uploading}
 			>
 				{#if uploading}
