@@ -42,6 +42,13 @@
 		</div>
 	</div>
 
+	{#if form?.error}
+		<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+			<p class="font-bold">Save Failed</p>
+			<p class="text-sm">{form.error}</p>
+		</div>
+	{/if}
+
 	<!-- Form -->
 	<form
 		id="project-form"
