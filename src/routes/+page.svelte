@@ -543,7 +543,7 @@
 			</div>
 
 			<div class="grid gap-12 lg:grid-cols-3">
-				{#each pageContent.projects || [] as project (project.title)}
+				{#each (pageContent.projects || []).filter((p) => p.featured) as project (project.title)}
 					<div class="group cursor-pointer">
 						<div class="relative mb-6 aspect-video overflow-hidden rounded-2xl bg-gray-100">
 							<img

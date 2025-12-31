@@ -205,6 +205,19 @@
 						<Label>Project Date</Label>
 						<Input type="date" name="project_date" bind:value={project.project_date} />
 					</div>
+					<div class="flex items-center justify-between rounded-lg border p-4">
+						<div class="space-y-0.5">
+							<Label>Featured Project</Label>
+							<div class="text-sm text-gray-500">Show in "Selected Work" on homepage</div>
+						</div>
+						<Switch
+							name="is_featured"
+							checked={project.is_featured}
+							onCheckedChange={(v) => (project.is_featured = v)}
+						/>
+						<!-- Hidden input to submit the boolean value -->
+						<input type="hidden" name="is_featured" value={project.is_featured} />
+					</div>
 				</Card.Content>
 			</Card.Root>
 

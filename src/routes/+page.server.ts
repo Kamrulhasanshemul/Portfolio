@@ -25,7 +25,8 @@ export const load: PageServerLoad = async () => {
                 technologies: p.technologies || [],
                 impact: p.impact || (p.results_achieved?.[0]?.description) || 'View Case Study',
                 link: `/projects/${p.slug}`,
-                image: p.featured_image
+                image: p.featured_image,
+                featured: p.is_featured
             }));
         } else if (projectError) {
             console.error('Error fetching projects from SQL:', projectError);

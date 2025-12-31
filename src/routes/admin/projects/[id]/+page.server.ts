@@ -55,6 +55,8 @@ export const actions: Actions = {
         const category = formData.get('category') as string;
         const status = formData.get('status') as string;
         const project_date = formData.get('project_date') as string;
+        // Handle boolean checkbox/switch
+        const is_featured = formData.get('is_featured') === 'true' || formData.get('is_featured') === 'on';
         const featured_image = formData.get('featured_image') as string;
         const live_demo_url = formData.get('live_demo_url') as string;
         const github_url = formData.get('github_url') as string;
@@ -77,6 +79,7 @@ export const actions: Actions = {
             category,
             status,
             project_date: project_date || null,
+            is_featured,
             featured_image,
             live_demo_url,
             github_url,

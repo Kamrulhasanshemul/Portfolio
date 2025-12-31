@@ -46,6 +46,7 @@ export interface Project {
 	impact: string;
 	link: string;
 	image: string;
+	featured?: boolean;
 }
 
 export interface Experience {
