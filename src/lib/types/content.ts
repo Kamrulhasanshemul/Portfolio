@@ -65,6 +65,13 @@ export interface Contact {
 	linkedin: string;
 }
 
+export interface Education {
+	institution: string;
+	degree: string;
+	period: string;
+	description?: string;
+}
+
 export interface Content {
 	hero: Hero;
 	stats: Stats;
@@ -73,6 +80,7 @@ export interface Content {
 	projects: Project[];
 	skills: Skills;
 	experience: Experience[];
+	education: Education[];
 	contact: Contact;
 	_id?: string;
 	createdAt?: string;
