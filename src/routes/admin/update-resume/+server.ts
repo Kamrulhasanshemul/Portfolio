@@ -112,11 +112,11 @@ export const GET: RequestHandler = async ({ locals }) => {
             ],
             skills: {
                 programming: [
-                    { name: "PostgreSQL", level: 85 },
                     { name: "SQL", level: 90 },
                     { name: "Python", level: 80 }
                 ],
                 visualization: [
+                    { name: "Tableau", level: 90 },
                     { name: "Google Data Studio (Looker)", level: 95 },
                     { name: "Microsoft Power BI", level: 90 }
                 ],
