@@ -34,7 +34,6 @@ export const GET: RequestHandler = async ({ locals }) => {
                 github: "https://github.com/Kamrulhasanshemul",
                 linkedin: "https://linkedin.com/in/kamrulhasanshemul",
                 // Re-added website from resume if valid, or keep existing
-                location: "2/52 Durham Street, St Lucia QLD 4067", // Duplicate key in obj literal, fixing below
             } as any,
             experience: [
                 {

@@ -7,7 +7,6 @@
 	import { Label } from '$lib/components/ui/label';
 	import * as Card from '$lib/components/ui/card';
 	import { Trash2, Plus } from '@lucide/svelte';
-	import { Trash2, Plus } from '@lucide/svelte';
 	import ImageUpload from './ImageUpload.svelte';
 	import FileUpload from './FileUpload.svelte';
 	import type { Content } from '$lib/types/content';
