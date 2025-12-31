@@ -583,20 +583,7 @@
 								variant="link"
 								class="h-auto p-0 text-gray-900 decoration-gray-900 underline-offset-4 hover:text-gray-600"
 								onclick={() => {
-									// slug logic
-									const projectSlugs: Record<string, string> = {
-										'E-commerce Analytics Platform': 'ecommerce-analytics-platform',
-										'Healthcare Data Dashboard': 'healthcare-data-dashboard',
-										'Financial Portfolio Tracker': 'financial-portfolio-tracker',
-										'Educational Content CMS': 'educational-content-cms'
-									};
-									const slug =
-										projectSlugs[project.title] ||
-										project.title
-											.toLowerCase()
-											.replace(/[^a-z0-9]/g, '-')
-											.replace(/-+/g, '-');
-									window.location.href = `/projects/${slug}`;
+									window.location.href = project.link;
 								}}
 							>
 								View Case Study <ArrowRight class="ml-1 h-3 w-3" />

@@ -20,7 +20,6 @@
 		{ href: '/admin/overview', label: 'Overview', icon: LayoutDashboard },
 		{ href: '/admin/projects', label: 'Projects', icon: FolderKanban },
 		{ href: '/admin/blog', label: 'Blog Posts', icon: PenTool },
-		{ href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase },
 		{ href: '/admin/profile', label: 'Profile', icon: UserCircle }
 	];
 
