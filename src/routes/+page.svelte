@@ -792,87 +792,36 @@
 							</form>
 						</CardContent>
 					</Card>
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<!-- Footer -->
-	<footer class="bg-gray-900 py-12">
+	<!-- Minimal Footer -->
+	<footer class="border-t border-gray-100 bg-white py-12">
 		<div class="container mx-auto px-4">
-			<div class="text-center">
-				<div class="mb-4 text-lg font-semibold text-white">Portfolio</div>
-				<p class="mb-6 text-gray-400">Transforming data into insights, insights into action.</p>
-				<div class="mb-8 flex justify-center space-x-6">
+			<div class="flex flex-col items-center justify-between gap-6 md:flex-row">
+				<div class="text-center md:text-left">
+					<div class="text-sm font-medium text-gray-900">
+						&copy; {new Date().getFullYear()} {pageContent.hero.name || 'Portfolio'}. All rights reserved.
+					</div>
+					<div class="mt-1 text-xs text-gray-500">
+						Designed with simplicity and focus.
+					</div>
+				</div>
+
+				<div class="flex items-center gap-6">
 					<button
 						onclick={() => openLink(pageContent?.contact?.github || '')}
-						class="text-gray-400 transition-colors hover:text-white"
-						aria-label="Visit GitHub profile"
+						class="text-gray-400 transition-colors hover:text-gray-900"
+						aria-label="GitHub"
 					>
-						<Github class="h-6 w-6" />
+						<Github class="h-5 w-5" />
 					</button>
 					<button
 						onclick={() => openLink(pageContent?.contact?.linkedin || '')}
-						class="text-gray-400 transition-colors hover:text-white"
-						aria-label="Visit LinkedIn profile"
+						class="text-gray-400 transition-colors hover:text-gray-900"
+						aria-label="LinkedIn"
 					>
-						<Linkedin class="h-6 w-6" />
+						<Linkedin class="h-5 w-5" />
 					</button>
 					<button
 						onclick={() => scrollToSection('contact')}
-						class="text-gray-400 transition-colors hover:text-white"
-						aria-label="Go to contact section"
-					>
-						<Mail class="h-6 w-6" />
-					</button>
-				</div>
-				<div class="mb-8 grid gap-6 text-sm md:grid-cols-4">
-					<div>
-						<h4 class="mb-2 font-medium text-white">Navigation</h4>
-						<div class="space-y-1">
-							<button
-								onclick={() => scrollToSection('about')}
-								class="block text-gray-400 transition-colors hover:text-white">About</button
-							>
-							<button
-								onclick={() => scrollToSection('services')}
-								class="block text-gray-400 transition-colors hover:text-white">Services</button
-							>
-							<button
-								onclick={() => scrollToSection('projects')}
-								class="block text-gray-400 transition-colors hover:text-white">Projects</button
-							>
-						</div>
-					</div>
-					<div>
-						<h4 class="mb-2 font-medium text-white">Services</h4>
-						<div class="space-y-1 text-gray-400">
-							<div>Data Analytics</div>
-							<div>Machine Learning</div>
-							<div>Business Intelligence</div>
-						</div>
-					</div>
-					<div>
-						<h4 class="mb-2 font-medium text-white">Contact</h4>
-						<div class="space-y-1 text-gray-400">
-							<div>{pageContent.contact?.email}</div>
-							<div>{pageContent.contact?.phone}</div>
-							<div>{pageContent.contact?.location}</div>
-						</div>
-					</div>
-					<div>
-						<h4 class="mb-2 font-medium text-white">Resources</h4>
-						<div class="space-y-1">
-							<button class="block text-gray-400 transition-colors hover:text-white"
-								>Download Resume</button
-							>
-							<button
-								onclick={() => scrollToSection('contact')}
-								class="block text-gray-400 transition-colors hover:text-white">Get Quote</button
-							>
-							<button
-								onclick={() => scrollToTop()}
-								class="block text-gray-400 transition-colors hover:text-white">Back to Top</button
 							>
 						</div>
 					</div>
