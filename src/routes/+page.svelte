@@ -792,17 +792,21 @@
 							</form>
 						</CardContent>
 					</Card>
+				</div>
+			</div>
+		</div>
+	</section>
+
 	<!-- Minimal Footer -->
 	<footer class="border-t border-gray-100 bg-white py-12">
 		<div class="container mx-auto px-4">
 			<div class="flex flex-col items-center justify-between gap-6 md:flex-row">
 				<div class="text-center md:text-left">
 					<div class="text-sm font-medium text-gray-900">
-						&copy; {new Date().getFullYear()} {pageContent.hero.name || 'Portfolio'}. All rights reserved.
+						&copy; {new Date().getFullYear()}
+						{pageContent.hero.name || 'Portfolio'}. All rights reserved.
 					</div>
-					<div class="mt-1 text-xs text-gray-500">
-						Designed with simplicity and focus.
-					</div>
+					<div class="mt-1 text-xs text-gray-500">Designed with simplicity and focus.</div>
 				</div>
 
 				<div class="flex items-center gap-6">
@@ -822,14 +826,11 @@
 					</button>
 					<button
 						onclick={() => scrollToSection('contact')}
-							>
-						</div>
-					</div>
-				</div>
-				<div class="border-t border-gray-800 pt-6">
-					<div class="text-sm text-gray-400">
-						© 2024 Data Analyst Portfolio. All rights reserved. | Built with SvelteKit
-					</div>
+						class="text-gray-400 transition-colors hover:text-gray-900"
+						aria-label="Contact"
+					>
+						<Mail class="h-5 w-5" />
+					</button>
 				</div>
 			</div>
 		</div>
