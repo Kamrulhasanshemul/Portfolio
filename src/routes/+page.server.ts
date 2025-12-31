@@ -1,20 +1,34 @@
 
 import type { PageServerLoad } from './$types';
-import { ContentService } from '$lib/supabase';
+import { ContentService, supabase } from '$lib/supabase';
 import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {
     try {
         console.log('Server load: Fetching content...');
-        const content = await ContentService.getContent();
+        const content = await ContentService.getContent() || {};
 
-        if (content) {
-            return { content };
+        // Fetch Projects from SQL to ensure "Project Management" is the source of truth
+        const { data: sqlProjects, error: projectError } = await supabase
+            .from('project_details')
+            .select('*')
+            .eq('status', 'published')
+            .order('project_date', { ascending: false });
+
+        if (!projectError && sqlProjects && sqlProjects.length > 0) {
+            console.log(`Loaded ${sqlProjects.length} projects from SQL.`);
+            // Map SQL projects to the UI Project interface
+            content.projects = sqlProjects.map(p => ({
+                title: p.title,
+                description: p.short_description,
+                technologies: p.technologies || [],
+                impact: p.impact || (p.results_achieved?.[0]?.description) || 'View Case Study',
+                link: `/projects/${p.slug}`,
+                image: p.featured_image
+            }));
         }
 
-        // If no content found, return null (the page will handle defaults or store init)
-        // But ideally we want to return something or the default structure
-        return { content: null };
+        return { content };
     } catch (err) {
         console.error('Server load error:', err);
         throw error(500, 'Failed to load content');
