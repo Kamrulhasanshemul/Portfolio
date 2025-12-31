@@ -42,6 +42,13 @@
 		</div>
 	</div>
 
+	{#if form?.success}
+		<div class="rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">
+			<p class="font-bold">Success</p>
+			<p class="text-sm">Project saved successfully.</p>
+		</div>
+	{/if}
+
 	{#if form?.error}
 		<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
 			<p class="font-bold">Save Failed</p>

@@ -79,7 +79,7 @@ export const actions: Actions = {
             category,
             status,
             project_date: project_date || null,
-            is_featured,
+            // is_featured, // TEMPORARILY DISABLED: Database column missing in user environment
             featured_image,
             live_demo_url,
             github_url,
