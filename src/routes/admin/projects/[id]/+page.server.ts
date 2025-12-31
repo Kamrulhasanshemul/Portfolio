@@ -94,18 +94,25 @@ export const actions: Actions = {
 
         let error;
 
-        if (id === 'new') {
-            const { error: insertError } = await supabase
-                .from('project_details')
-                .insert(payload);
-            error = insertError;
-        } else {
-            const { error: updateError } = await supabase
-                .from('project_details')
-                .update(payload)
-                .eq('id', id);
-            error = updateError;
+        // Helper to run query
+        const runQuery = async (data: any) => {
+            if (id === 'new') {
+                return await supabase.from('project_details').insert(data);
+            } else {
+                return await supabase.from('project_details').update(data).eq('id', id);
+            }
+        };
+
+        let result = await runQuery(payload);
+
+        // Fallback for missing column
+        if (result.error && result.error.message.includes('column') && result.error.message.includes('does not exist')) {
+            console.warn('Column missing in DB, retrying without is_featured...');
+            const { is_featured, ...safePayload } = payload;
+            result = await runQuery(safePayload);
         }
+
+        error = result.error;
 
         if (error) {
             console.error('Project Save Error:', error);
