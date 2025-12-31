@@ -1,6 +1,5 @@
-
 import { error, redirect } from '@sveltejs/kit';
-import { supabase } from '$lib/supabase';
+import { supabase, ContentService } from '$lib/supabase';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -111,6 +110,56 @@ export const actions: Actions = {
         }
 
         // If new, redirect to list
+        if (id === 'new') {
+            // We need to fetch the inserted ID/Slug to sync correctly if we want to be precise, 
+            // but for now, let's just redirect. The user can edit again to sync if needed, 
+            // OR we do the sync here. Let's do the sync here for better UX.
+        }
+
+        // --- SYNC WITH MAIN SITE JSON (portfolio_content) ---
+        try {
+            // 1. Fetch current content
+            const { data: currentContent } = await ContentService.getContent();
+
+            if (currentContent) {
+                let projects = currentContent.projects || [];
+                const projectIndex = projects.findIndex((p: any) =>
+                    // Try to match by title (fuzzy) or if we had an ID. 
+                    // Since JSON doesn't have IDs, we rely on title matching or slug generation.
+                    // This is imperfect but standard for this hybrid setup.
+                    p.title === title ||
+                    p.title.toLowerCase().replace(/[^a-z0-9]/g, '-') === slug
+                );
+
+                const newProjectEntry = {
+                    title: title,
+                    description: short_description,
+                    technologies: technologies,
+                    impact: results_achieved[0]?.description || 'Impact pending...', // Map first result to impact
+                    link: live_demo_url || `/projects/${slug}`, // Prefer live link, else internal
+                    image: featured_image
+                };
+
+                if (projectIndex >= 0) {
+                    // Update existing
+                    projects[projectIndex] = newProjectEntry;
+                } else {
+                    // Add new (prepend to show as latest)
+                    projects.unshift(newProjectEntry);
+                }
+
+                // 2. Save back to module
+                await ContentService.saveContent({
+                    ...currentContent,
+                    projects: projects
+                });
+                console.log('Synced project change to Main Site JSON');
+            }
+        } catch (syncErr) {
+            console.error('Error syncing to JSON blob:', syncErr);
+            // Don't fail the request, just log it. The SQL update is the source of truth.
+        }
+
         if (id === 'new') {
             throw redirect(303, '/admin/projects');
         }
