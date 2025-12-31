@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
-	import { LayoutDashboard, UserCircle, Briefcase, PenTool, Globe, Menu } from '@lucide/svelte';
+	import {
+		LayoutDashboard,
+		UserCircle,
+		Briefcase,
+		PenTool,
+		Globe,
+		Menu,
+		FolderKanban
+	} from '@lucide/svelte';
 
 	let { isOpen = true, onToggle } = $props<{
 		isOpen?: boolean;
@@ -10,6 +18,7 @@
 
 	const sidebarItems = [
 		{ href: '/admin/overview', label: 'Overview', icon: LayoutDashboard },
+		{ href: '/admin/projects', label: 'Projects', icon: FolderKanban },
 		{ href: '/admin/blog', label: 'Blog Posts', icon: PenTool },
 		{ href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase },
 		{ href: '/admin/profile', label: 'Profile', icon: UserCircle }

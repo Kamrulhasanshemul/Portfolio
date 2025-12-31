@@ -4,26 +4,26 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import { Textarea } from '$lib/components/ui/textarea';
-    import { Switch } from '$lib/components/ui/switch';
-    import * as Card from '$lib/components/ui/card';
-    import { ArrowLeft, Save, Plus, Trash2, GripVertical } from 'lucide-svelte';
-    import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-    import ImageUpload from '$lib/components/admin/ImageUpload.svelte';
+	import { Switch } from '$lib/components/ui/switch';
+	import * as Card from '$lib/components/ui/card';
+	import { ArrowLeft, Save, Plus, Trash2, GripVertical } from '@lucide/svelte';
+	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
+	import ImageUpload from '$lib/components/admin/ImageUpload.svelte';
 
 	export let data;
-    export letform;
+	export let form;
 
-    let project = data.project;
-    let loading = false;
+	let project = data.project;
+	let loading = false;
 
-    // Helper for array fields
-    function addItem(field: string, template: any) {
-        project[field] = [...(project[field] || []), template];
-    }
+	// Helper for array fields
+	function addItem(field: string, template: any) {
+		project[field] = [...(project[field] || []), template];
+	}
 
-    function removeItem(field: string, index: number) {
-        project[field] = project[field].filter((_: any, i: number) => i !== index);
-    }
+	function removeItem(field: string, index: number) {
+		project[field] = project[field].filter((_: any, i: number) => i !== index);
+	}
 </script>
 
 <div class="space-y-6">

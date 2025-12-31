@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { Plus, Pencil, ExternalLink } from '@lucide/svelte';
-	import { format } from 'date-fns';
 
 	export let data;
 </script>
@@ -55,7 +54,13 @@
 								{/if}
 							</td>
 							<td class="px-6 py-4 text-gray-600">
-								{project.project_date ? format(new Date(project.project_date), 'MMM d, yyyy') : '-'}
+								{project.project_date
+									? new Date(project.project_date).toLocaleDateString('en-US', {
+											year: 'numeric',
+											month: 'short',
+											day: 'numeric'
+										})
+									: '-'}
 							</td>
 							<td class="px-6 py-4 text-right">
 								<div class="flex justify-end gap-2">
