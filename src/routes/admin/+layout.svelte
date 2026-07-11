@@ -1,47 +1,46 @@
 <script lang="ts">
 	import { auth } from '$lib/stores/auth';
-	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { LogOut, User, Menu, RefreshCw } from '@lucide/svelte';
 	import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
 	import { content } from '$lib/stores/content';
-	import { ContentService } from '$lib/supabase';
 
-	interface AuthState {
-		isAuthenticated: boolean;
-		initialized: boolean;
-		user: { username: string } | null;
-	}
+	let { data, children } = $props();
 
-	let { children } = $props();
+	// Server-verified session (from +layout.server.ts / hooks). The hooks
+	// guard guarantees only authenticated users reach admin pages.
+	const user = $derived(data.user);
+	const isLoginPage = $derived($page.url.pathname === '/admin/login');
 
-	let authState: AuthState = $state({ isAuthenticated: false, initialized: false, user: null });
 	let isSidebarOpen = $state(true);
 	let isLoadingContent = $state(false);
 
+	// Mirror the server session into the client store for components that use it
+	$effect(() => {
+		auth.setUser(user ?? null);
+	});
+
 	onMount(() => {
-		if (browser) {
-			auth.checkAuth();
+		if (browser && user) {
 			loadGlobalContent();
 		}
 	});
 
-	// Global content loader
+	// Global content loader (via the API so it works identically everywhere)
 	async function loadGlobalContent() {
-		if ($content && Object.keys($content).length > 0) return; // Already loaded
+		if ($content && Object.keys($content).length > 0 && $content.hero?.name !== 'John Doe') return;
 
 		isLoadingContent = true;
 		try {
-			const dbContent = await ContentService.getContent();
-			if (dbContent) {
-				console.log('Admin Layout: Loaded content from Supabase');
-				content.set(dbContent);
-			} else {
-				console.log('Admin Layout: Using local/default content');
+			const response = await fetch('/api/content');
+			if (response.ok) {
+				const dbContent = await response.json();
+				if (dbContent?.hero) {
+					content.set(dbContent);
+				}
 			}
 		} catch (error) {
 			console.error('Admin Layout: Error loading content:', error);
@@ -50,24 +49,10 @@
 		}
 	}
 
-	auth.subscribe((state) => {
-		authState = state;
-
-		// Only redirect after initialization is complete
-		if (browser && state.initialized) {
-			const currentPath = $page.url.pathname;
-
-			if (!state.isAuthenticated && currentPath !== '/admin/login') {
-				goto('/admin/login');
-			} else if (state.isAuthenticated && currentPath === '/admin/login') {
-				goto('/admin/overview');
-			}
-		}
-	});
-
-	function handleLogout() {
-		auth.logout();
-		goto('/admin/login');
+	async function handleLogout() {
+		await auth.logout();
+		// Full navigation so the server sees the cleared cookie
+		window.location.href = '/admin/login';
 	}
 
 	// Helper to get title from path
@@ -76,29 +61,14 @@
 		if (path.includes('blog')) return 'Blog Posts';
 		if (path.includes('profile')) return 'Profile';
 		if (path.includes('portfolio')) return 'Portfolio';
+		if (path.includes('projects')) return 'Projects';
+		if (path.includes('users')) return 'Users';
 		return 'Admin Panel';
 	}
 </script>
 
-{#if !authState.initialized}
-	<!-- Enhanced Loading State -->
-	<div
-		class="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50"
-	>
-		<Card.Root class="w-full max-w-md border-0 shadow-xl">
-			<Card.Content class="pt-6">
-				<div class="text-center">
-					<div
-						class="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"
-					></div>
-					<h3 class="mb-2 text-lg font-medium text-gray-900">Initializing Admin Panel</h3>
-					<p class="text-sm text-gray-500">Setting up your dashboard environment...</p>
-				</div>
-			</Card.Content>
-		</Card.Root>
-	</div>
-{:else if authState.isAuthenticated && $page.url.pathname !== '/admin/login'}
-	<!-- Modern Admin Layout -->
+{#if user && !isLoginPage}
+	<!-- Admin Layout -->
 	<div class="flex h-screen bg-gray-50">
 		<AdminSidebar isOpen={isSidebarOpen} onToggle={() => (isSidebarOpen = !isSidebarOpen)} />
 
@@ -128,21 +98,19 @@
 
 				<!-- Right Side - User Menu & Actions -->
 				<div class="flex items-center gap-4">
-					{#if authState.user}
-						<div class="flex items-center gap-3">
-							<div class="hidden items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 md:flex">
-								<User class="h-4 w-4 text-gray-600" />
-								<span class="text-sm font-medium text-gray-700">
-									{authState.user.username}
-								</span>
-							</div>
-
-							<Button variant="outline" size="sm" onclick={handleLogout} class="group">
-								<LogOut class="h-4 w-4 transition-colors group-hover:text-red-600" />
-								<span class="ml-2 hidden md:inline">Logout</span>
-							</Button>
+					<div class="flex items-center gap-3">
+						<div class="hidden items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 md:flex">
+							<User class="h-4 w-4 text-gray-600" />
+							<span class="text-sm font-medium text-gray-700">
+								{user.username}
+							</span>
 						</div>
-					{/if}
+
+						<Button variant="outline" size="sm" onclick={handleLogout} class="group">
+							<LogOut class="h-4 w-4 transition-colors group-hover:text-red-600" />
+							<span class="ml-2 hidden md:inline">Logout</span>
+						</Button>
+					</div>
 				</div>
 			</header>
 

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import PortfolioManager from '$lib/components/admin/PortfolioManager.svelte';
 	import { content } from '$lib/stores/content';
-	import { ContentService } from '$lib/supabase';
 	import { Button } from '$lib/components/ui/button';
 	import { Save, RefreshCw, Eye } from '@lucide/svelte';
 
@@ -17,11 +16,13 @@
 		if (!$content) return;
 		isLoading = true;
 		try {
-			const result = await ContentService.saveContent($content);
-			if (result.success) {
+			const ok = await content.update($content);
+			if (ok) {
 				isDirty = false;
 				saveMessage = 'Saved!';
 				setTimeout(() => (saveMessage = ''), 3000);
+			} else {
+				alert('Failed to save. Please try again.');
 			}
 		} catch {
 			alert('Failed to save');

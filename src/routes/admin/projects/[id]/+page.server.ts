@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
-import { supabase, ContentService } from '$lib/supabase';
+import { supabaseAdmin as supabase } from '$lib/server/supabase';
+import { ServerContentService as ContentService } from '$lib/server/content';
 import type { PageServerLoad, Actions } from './$types';
 import type { Project } from '$lib/types/content';
 

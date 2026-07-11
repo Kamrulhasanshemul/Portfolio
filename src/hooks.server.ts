@@ -23,6 +23,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
+	// Already logged in? Skip the login page.
+	if (path === '/admin/login' && user) {
+		throw redirect(303, '/admin/overview');
+	}
+
 	// Protect Admin API Routes
 	if (path.startsWith('/api/admin')) {
 		// Allow login endpoint

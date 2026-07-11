@@ -1,5 +1,4 @@
 import { writable } from 'svelte/store';
-import { browser } from '$app/environment';
 
 interface User {
 	username: string;
@@ -8,98 +7,57 @@ interface User {
 interface AuthState {
 	isAuthenticated: boolean;
 	user: User | null;
-	initialized: boolean;
 }
 
+// Session truth lives in the httpOnly cookie (set/cleared by /api/admin).
+// This store only mirrors it for UI purposes — the server layout provides
+// the authoritative user via `locals.user`.
 const createAuthStore = () => {
 	const { subscribe, set } = writable<AuthState>({
 		isAuthenticated: false,
-		user: null,
-		initialized: false
+		user: null
 	});
 
 	return {
 		subscribe,
-		login: async (username: string, password: string): Promise<boolean> => {
+		// Hydrate from server-provided data (admin +layout.server.ts)
+		setUser: (user: User | null) => {
+			set({ isAuthenticated: !!user, user });
+		},
+		login: async (
+			username: string,
+			password: string
+		): Promise<{ success: boolean; error?: string }> => {
 			try {
-				// Try to authenticate with API first
 				const response = await fetch('/api/admin', {
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						action: 'authenticate',
-						username,
-						password
-					})
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ action: 'authenticate', username, password })
 				});
+
+				const data = await response.json();
 
 				if (response.ok) {
-					const data = await response.json();
-					set({
-						isAuthenticated: true,
-						user: { username: data.user.username },
-						initialized: true
-					});
-					if (browser) {
-						localStorage.setItem('admin-auth', 'true');
-						localStorage.setItem('admin-user', data.user.username);
-					}
-					return true;
+					set({ isAuthenticated: true, user: { username: data.user.username } });
+					return { success: true };
 				}
+				return { success: false, error: data.error || 'Invalid credentials' };
 			} catch (error) {
-				console.warn('API authentication failed, falling back to default:', error);
-			}
-
-			// Fallback for development ONLY
-			if (import.meta.env.DEV) {
-				const defaultUsername = 'admin';
-				const defaultPassword = 'admin123';
-
-				if (username === defaultUsername && password === defaultPassword) {
-					console.warn('Using development fallback login');
-					set({
-						isAuthenticated: true,
-						user: { username },
-						initialized: true
-					});
-					if (browser) {
-						localStorage.setItem('admin-auth', 'true');
-						localStorage.setItem('admin-user', username);
-					}
-					return true;
-				}
-			}
-			return false;
-		},
-		logout: () => {
-			set({
-				isAuthenticated: false,
-				user: null,
-				initialized: true
-			});
-			if (browser) {
-				localStorage.removeItem('admin-auth');
-				localStorage.removeItem('admin-user');
+				console.error('Login request failed:', error);
+				return { success: false, error: 'Login failed. Please try again.' };
 			}
 		},
-		checkAuth: () => {
-			if (browser) {
-				const isAuth = localStorage.getItem('admin-auth') === 'true';
-				const username = localStorage.getItem('admin-user');
-				set({
-					isAuthenticated: isAuth,
-					user: isAuth && username ? { username } : null,
-					initialized: true
+		logout: async (): Promise<void> => {
+			try {
+				await fetch('/api/admin', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ action: 'logout' })
 				});
-			} else {
-				set({
-					isAuthenticated: false,
-					user: null,
-					initialized: true
-				});
+			} catch (error) {
+				console.error('Logout request failed:', error);
 			}
+			set({ isAuthenticated: false, user: null });
 		}
 	};
 };

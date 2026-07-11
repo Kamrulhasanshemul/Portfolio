@@ -1,8 +1,10 @@
 import { json } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import type { RequestHandler } from './$types';
-import { AdminService } from '$lib/admin';
+import { AdminService } from '$lib/server/admin';
 import { createSessionToken } from '$lib/server/auth';
+
+const SESSION_COOKIE = 'session';
 
 // GET - List all admin users
 export const GET: RequestHandler = async ({ locals }) => {
@@ -14,7 +16,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 		const result = await AdminService.getAdminUsers();
 
 		if (result.success) {
-			return json({ users: result.users });
+			return json({ users: result.users, currentUsername: locals.user.username });
 		} else {
 			return json({ error: 'Failed to fetch admin users' }, { status: 500 });
 		}
@@ -24,16 +26,84 @@ export const GET: RequestHandler = async ({ locals }) => {
 	}
 };
 
-// POST - Create new admin user
+// POST - Auth actions and user creation
 export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 	try {
 		const { action, ...data } = await request.json();
 
-		if (action !== 'authenticate' && !locals.user) {
+		// 'authenticate', 'logout' and 'setup-status'/'initialize' (first-time
+		// bootstrap) work without a session; everything else requires one.
+		const publicActions = ['authenticate', 'logout', 'setup-status', 'initialize'];
+		if (!publicActions.includes(action) && !locals.user) {
 			return json({ error: 'Unauthorized' }, { status: 401 });
 		}
 
 		switch (action) {
+			case 'authenticate': {
+				const authResult = await AdminService.authenticateAdmin(data.username, data.password);
+
+				if (authResult.success) {
+					const token = createSessionToken(data.username);
+					cookies.set(SESSION_COOKIE, token, {
+						path: '/',
+						httpOnly: true,
+						sameSite: 'strict',
+						secure: !dev,
+						maxAge: 60 * 60 * 24 // 1 day (matches token expiry)
+					});
+
+					return json({
+						message: authResult.message,
+						user: authResult.user
+					});
+				} else {
+					return json({ error: authResult.message }, { status: 401 });
+				}
+			}
+
+			case 'logout': {
+				cookies.delete(SESSION_COOKIE, { path: '/' });
+				return json({ message: 'Logged out' });
+			}
+
+			case 'setup-status': {
+				// Lets the login page know whether first-time setup is needed
+				const count = await AdminService.countAdmins();
+				return json({ needsSetup: count === 0 });
+			}
+
+			case 'initialize': {
+				// First-time bootstrap: only allowed while no admin user exists,
+				// so this can never be used to add users to a configured system.
+				const count = await AdminService.countAdmins();
+				if (count !== 0) {
+					return json({ error: 'Admin system is already initialized' }, { status: 403 });
+				}
+
+				const createResult = await AdminService.createAdmin({
+					username: data.username,
+					email: data.email,
+					password: data.password,
+					role: 'admin'
+				});
+
+				if (!createResult.success) {
+					return json({ error: createResult.message }, { status: 400 });
+				}
+
+				// Log the new admin straight in
+				const token = createSessionToken(data.username);
+				cookies.set(SESSION_COOKIE, token, {
+					path: '/',
+					httpOnly: true,
+					sameSite: 'strict',
+					secure: !dev,
+					maxAge: 60 * 60 * 24
+				});
+
+				return json({ message: 'Admin account created', user: createResult.user });
+			}
+
 			case 'create': {
 				const createResult = await AdminService.createAdmin({
 					username: data.username,
@@ -50,42 +120,6 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 				} else {
 					return json({ error: createResult.message }, { status: 400 });
 				}
-			}
-
-			case 'authenticate': {
-				const authResult = await AdminService.authenticateAdmin(data.username, data.password);
-
-				if (authResult.success) {
-					// Create and set session cookie
-					const token = createSessionToken(data.username);
-					cookies.set('session', token, {
-						path: '/',
-						httpOnly: true,
-						sameSite: 'strict',
-						secure: !dev,
-						maxAge: 60 * 60 * 24 // 1 day
-					});
-
-					return json({
-						message: authResult.message,
-						user: authResult.user
-					});
-				} else {
-					return json({ error: authResult.message }, { status: 401 });
-				}
-			}
-
-			case 'initialize': {
-				// Initialize should strictly check if system is already initialized too?
-				// AdminService.initializeAdminTable() handles idempotent creation, but createDefaultAdmin might fail.
-				const initResult = await AdminService.initializeAdminTable();
-				if (initResult) {
-					const adminResult = await AdminService.createDefaultAdmin();
-					if (adminResult) {
-						return json({ message: 'Admin system initialized successfully' });
-					}
-				}
-				return json({ error: 'Failed to initialize admin system' }, { status: 500 });
 			}
 
 			default:
@@ -137,6 +171,12 @@ export const DELETE: RequestHandler = async ({ request, locals }) => {
 
 		if (!id) {
 			return json({ error: 'Admin user ID is required' }, { status: 400 });
+		}
+
+		// Prevent deleting your own account while logged in with it
+		const self = await AdminService.getAdminByUsername(locals.user.username);
+		if (self && self.id === id) {
+			return json({ error: 'You cannot delete your own account' }, { status: 400 });
 		}
 
 		const result = await AdminService.deleteAdmin(id);

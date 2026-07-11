@@ -3,6 +3,7 @@
 	import StarterKit from '@tiptap/starter-kit';
 	import Link from '@tiptap/extension-link';
 	import Image from '@tiptap/extension-image';
+	import Placeholder from '@tiptap/extension-placeholder';
 	import { onMount, onDestroy } from 'svelte';
 	import {
 		Bold,
@@ -50,7 +51,10 @@
 				Link.configure({
 					openOnClick: false
 				}),
-				Image
+				Image,
+				Placeholder.configure({
+					placeholder
+				})
 			],
 			content: content,
 			editable: !readonly,
@@ -355,7 +359,6 @@
 	<!-- Editor Content -->
 	<div
 		bind:this={element}
-		aria-label={placeholder}
 		class="prose prose-sm min-h-[200px] max-w-none p-4 focus:outline-none {readonly
 			? 'bg-gray-50'
 			: ''}"
@@ -365,6 +368,14 @@
 <style>
 	:global(.ProseMirror) {
 		outline: none;
+	}
+
+	:global(.ProseMirror p.is-editor-empty:first-child::before) {
+		content: attr(data-placeholder);
+		float: left;
+		height: 0;
+		color: #9ca3af;
+		pointer-events: none;
 	}
 
 	:global(.ProseMirror h1) {

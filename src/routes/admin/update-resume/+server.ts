@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { ContentService, supabase } from '$lib/supabase';
+import { ServerContentService as ContentService } from '$lib/server/content';
+import { supabaseAdmin as supabase } from '$lib/server/supabase';
 import type { Content } from '$lib/types/content';
 
 export const GET: RequestHandler = async ({ locals }) => {

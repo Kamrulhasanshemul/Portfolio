@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
-	import { LayoutDashboard, UserCircle, PenTool, Globe, Menu, FolderKanban } from '@lucide/svelte';
+	import {
+		LayoutDashboard,
+		UserCircle,
+		PenTool,
+		Globe,
+		Menu,
+		FolderKanban,
+		Briefcase,
+		Users
+	} from '@lucide/svelte';
 
 	let { isOpen = true, onToggle } = $props<{
 		isOpen?: boolean;
@@ -12,7 +21,9 @@
 		{ href: '/admin/overview', label: 'Overview', icon: LayoutDashboard },
 		{ href: '/admin/projects', label: 'Projects', icon: FolderKanban },
 		{ href: '/admin/blog', label: 'Blog Posts', icon: PenTool },
-		{ href: '/admin/profile', label: 'Profile', icon: UserCircle }
+		{ href: '/admin/portfolio', label: 'Portfolio', icon: Briefcase },
+		{ href: '/admin/profile', label: 'Profile', icon: UserCircle },
+		{ href: '/admin/users', label: 'Users', icon: Users }
 	];
 
 	function isActive(path: string) {

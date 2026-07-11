@@ -1,11 +1,12 @@
 import type { PageServerLoad } from './$types';
 import { ContentService, supabase } from '$lib/supabase';
+import { normalizeContent } from '$lib/default-content';
 import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {
 	try {
 		console.log('Server load: Fetching content...');
-		const content = (await ContentService.getContent()) || {};
+		const content = normalizeContent(await ContentService.getContent());
 
 		// Fetch Projects from SQL to ensure "Project Management" is the source of truth
 		const { data: sqlProjects, error: projectError } = await supabase
@@ -25,8 +26,15 @@ export const load: PageServerLoad = async () => {
 				impact: p.impact || p.results_achieved?.[0]?.description || 'View Case Study',
 				link: `/projects/${p.slug}`,
 				image: p.featured_image,
-				featured: p.is_featured
+				featured: !!p.is_featured
 			}));
+
+			// If nothing is flagged featured (or the is_featured column doesn't
+			// exist yet), surface the newest published projects instead of an
+			// empty "Selected Work" section.
+			if (content.projects.length > 0 && !content.projects.some((p) => p.featured)) {
+				content.projects = content.projects.map((p, i) => ({ ...p, featured: i < 3 }));
+			}
 		} else if (projectError) {
 			console.error('Error fetching projects from SQL:', projectError);
 		}
