@@ -6,6 +6,10 @@ import type { Content } from '$lib/types/content';
 // Default content structure (fallback)
 const defaultContent: Content = {
 	hero: {
+		name: 'John Doe',
+		role: 'Data Analyst',
+		headline: 'Turning Numbers into Insights',
+		subheadline: 'Specializing in business intelligence',
 		title: 'Data Analyst',
 		subtitle: 'Turning Numbers into Insights',
 		description:
@@ -139,6 +143,7 @@ const defaultContent: Content = {
 			]
 		}
 	],
+	education: [],
 	contact: {
 		email: 'hello@dataanalyst.com',
 		phone: '+1 (555) 123-4567',
@@ -151,14 +156,11 @@ const defaultContent: Content = {
 // GET - Fetch content from Supabase database
 export const GET: RequestHandler = async () => {
 	try {
-		console.log('Fetching content from Supabase database...');
 		const content = await ContentService.getContent();
 
 		if (content) {
-			console.log('Content retrieved from database');
 			return json(content);
 		} else {
-			console.log('No content found in database, returning default content');
 			// Save default content to database for next time
 			await ContentService.saveContent(defaultContent);
 			return json(defaultContent);
@@ -171,16 +173,17 @@ export const GET: RequestHandler = async () => {
 };
 
 // POST - Create new content in database
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
+	if (!locals.user) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 	try {
 		const requestData = await request.json();
 		const contentToSave = Object.keys(requestData).length > 0 ? requestData : defaultContent;
 
-		console.log('Saving new content to Supabase database...');
 		const result = await ContentService.saveContent(contentToSave);
 
 		if (result.success) {
-			console.log('Content successfully saved to database');
 			return json(result.data);
 		} else {
 			console.error('Failed to save content:', result.error);
@@ -193,11 +196,12 @@ export const POST: RequestHandler = async ({ request }) => {
 };
 
 // PUT - Update existing content in database
-export const PUT: RequestHandler = async ({ request }) => {
+export const PUT: RequestHandler = async ({ request, locals }) => {
+	if (!locals.user) {
+		return json({ error: 'Unauthorized' }, { status: 401 });
+	}
 	try {
-		console.log('=== PUT REQUEST RECEIVED ===');
 		const updatedContent = await request.json();
-		console.log('Content received, sections:', Object.keys(updatedContent));
 
 		// Validate that required sections exist
 		const requiredSections = [
@@ -220,13 +224,9 @@ export const PUT: RequestHandler = async ({ request }) => {
 			);
 		}
 
-		console.log('All required sections present, saving to Supabase...');
 		const result = await ContentService.saveContent(updatedContent);
 
-		console.log('Supabase save result:', result);
-
 		if (result.success) {
-			console.log('Content successfully updated in database');
 			return json(result.data);
 		} else {
 			console.error('Failed to update content:', result.error);
@@ -234,9 +234,7 @@ export const PUT: RequestHandler = async ({ request }) => {
 			return json({ error: 'Failed to update content', details: result.error }, { status: 500 });
 		}
 	} catch (error) {
-		console.error('=== PUT REQUEST ERROR ===');
 		console.error('Error updating content:', error);
-		console.error('Error stack:', (error as Error).stack);
 		return json(
 			{ error: 'Internal server error', details: (error as Error).message },
 			{ status: 500 }

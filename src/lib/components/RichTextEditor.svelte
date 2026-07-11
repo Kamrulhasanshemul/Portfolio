@@ -23,14 +23,20 @@
 
 	import { Loader2 } from '@lucide/svelte';
 
-	export let content: string = '';
-	export const placeholder: string = 'Start writing your blog post...';
-	export let readonly: boolean = false;
+	let {
+		content = $bindable(''),
+		placeholder = 'Start writing your blog post...',
+		readonly = false
+	} = $props<{
+		content?: string;
+		placeholder?: string;
+		readonly?: boolean;
+	}>();
 
 	let element: HTMLElement;
-	let editor: Editor;
+	let editor: Editor | undefined = $state();
 	let fileInput: HTMLInputElement;
-	let uploading = false;
+	let uploading = $state(false);
 
 	onMount(() => {
 		editor = new Editor({
@@ -65,9 +71,11 @@
 	});
 
 	// Update content when prop changes
-	$: if (editor && content !== editor.getHTML()) {
-		editor.commands.setContent(content, false);
-	}
+	$effect(() => {
+		if (editor && content !== editor.getHTML()) {
+			editor.commands.setContent(content, false);
+		}
+	});
 
 	function toggleBold() {
 		editor.chain().focus().toggleBold().run();

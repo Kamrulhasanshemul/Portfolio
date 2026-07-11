@@ -14,7 +14,7 @@
 		X
 	} from '@lucide/svelte';
 
-	export let data;
+	let { data } = $props();
 	const { project } = data;
 
 	let currentImageIndex = 0;
@@ -78,7 +78,7 @@
 	<meta name="twitter:image" content={project.featured_image} />
 </svelte:head>
 
-<svelte:window on:keydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} />
 
 <main class="min-h-screen bg-gray-50">
 	<!-- Header Navigation -->

@@ -140,6 +140,7 @@ const defaultContent: Content = {
 			]
 		}
 	],
+	education: [],
 	contact: {
 		email: 'hello@dataanalyst.com',
 		phone: '+1 (555) 123-4567',
@@ -158,18 +159,15 @@ function createContentStore() {
 		set,
 		init: async () => {
 			if (initialized) {
-				console.log('Content store already initialized');
 				return;
 			}
 
-			console.log('Initializing content store...');
 			try {
 				const response = await fetch('/api/content');
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
 				}
 				const data = await response.json();
-				console.log('Raw API response:', JSON.stringify(data, null, 2));
 
 				// Validate that we have all required sections
 				const requiredSections = [
@@ -189,13 +187,10 @@ function createContentStore() {
 					// Merge with default content to ensure completeness
 					const completeData = { ...defaultContent, ...data };
 					set(completeData);
-					console.log('Content store initialized with merged data');
 				} else if (Object.keys(data).length > 0 && data.hero) {
 					set(data);
-					console.log('Content store initialized with complete API data');
 				} else {
 					// If no content exists, create initial content
-					console.log('No existing content, creating default...');
 					const createResponse = await fetch('/api/content', {
 						method: 'POST',
 						headers: {
@@ -210,22 +205,16 @@ function createContentStore() {
 
 					const newData = await createResponse.json();
 					set(newData);
-					console.log('Content store initialized with newly created data');
 				}
 
 				initialized = true;
 			} catch (error) {
 				console.error('Failed to initialize content:', error);
-				console.log('Falling back to default content');
 				set(defaultContent);
 				initialized = true;
 			}
 		},
 		update: async (newContent: Content) => {
-			console.log('=== CONTENT STORE UPDATE ===');
-			console.log('Updating content store with sections:', Object.keys(newContent));
-			console.log('Content details:', JSON.stringify(newContent, null, 2));
-
 			// Validate content before sending
 			if (!newContent.hero || !newContent.stats || !newContent.about) {
 				console.error('Invalid content structure - missing required sections');
@@ -233,7 +222,6 @@ function createContentStore() {
 			}
 
 			try {
-				console.log('Sending PUT request to /api/content...');
 				const response = await fetch('/api/content', {
 					method: 'PUT',
 					headers: {
@@ -242,9 +230,6 @@ function createContentStore() {
 					body: JSON.stringify(newContent)
 				});
 
-				console.log('Response status:', response.status);
-				console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
 				if (!response.ok) {
 					const errorText = await response.text();
 					console.error('PUT request failed:', response.status, errorText);
@@ -252,30 +237,23 @@ function createContentStore() {
 				}
 
 				const data = await response.json();
-				console.log('PUT request successful, received:', Object.keys(data));
-				console.log('Updated data preview:', JSON.stringify(data, null, 2));
 
 				// Immediately update the store with the new data
 				set(data);
-				console.log('Content store updated successfully');
-				console.log('=== UPDATE COMPLETE ===');
 				return true;
 			} catch (error) {
-				console.error('=== UPDATE FAILED ===');
 				console.error('Failed to update content:', error);
 				return false;
 			}
 		},
 		// Force refresh from API
 		refresh: async () => {
-			console.log('Refreshing content store...');
 			try {
 				const response = await fetch('/api/content');
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
 				}
 				const data = await response.json();
-				console.log('Refresh API response:', Object.keys(data));
 
 				// Validate and merge if necessary
 				const requiredSections = [
@@ -298,7 +276,6 @@ function createContentStore() {
 					set(data);
 				}
 
-				console.log('Content store refreshed successfully');
 				return true;
 			} catch (error) {
 				console.error('Failed to refresh content:', error);

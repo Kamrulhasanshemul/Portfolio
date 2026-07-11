@@ -10,12 +10,14 @@
 		value = $bindable(''),
 		path = 'uploads',
 		label = 'Image',
-		onChange
+		onChange,
+		onRemove
 	} = $props<{
 		value: string;
 		path?: string;
 		label?: string;
 		onChange?: () => void;
+		onRemove?: () => void;
 	}>();
 
 	let fileInput: HTMLInputElement;
@@ -116,8 +118,7 @@
 		}
 
 		value = '';
-		dispatch('remove');
-		dispatch('change', { url: '' });
+		onRemove?.();
 		onChange?.();
 	}
 </script>

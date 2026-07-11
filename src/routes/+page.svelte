@@ -89,10 +89,11 @@
 		document.addEventListener('visibilitychange', handleVisibilityChange);
 
 		// Also refresh on window focus
-		window.addEventListener('focus', () => {
+		const handleFocus = () => {
 			console.log('Window focused, refreshing content...');
 			content.refresh();
-		});
+		};
+		window.addEventListener('focus', handleFocus);
 
 		// Scroll listener
 		window.addEventListener('scroll', handleScroll);
@@ -137,6 +138,7 @@
 			unsubscribe();
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
 			window.removeEventListener('scroll', handleScroll);
+			window.removeEventListener('focus', handleFocus);
 		};
 	});
 
@@ -516,10 +518,11 @@
 						class="group border-0 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
 					>
 						<CardContent class="p-0">
+							{@const IconComponent = getIcon(service.icon)}
 							<div
 								class="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 text-gray-900 transition-colors group-hover:bg-black group-hover:text-white"
 							>
-								<svelte:component this={getIcon(service.icon)} class="h-7 w-7" />
+								<IconComponent class="h-7 w-7" />
 							</div>
 							<h3 class="mb-3 text-xl font-bold text-gray-900">{service.title}</h3>
 							<p class="leading-relaxed text-gray-500">{service.description}</p>
@@ -612,7 +615,7 @@
 							{category.replace(/([A-Z])/g, ' $1').trim()}
 						</h3>
 						<div class="space-y-4">
-							{#each skills || [] as skill (skill.name)}
+							{#each (skills as any[]) || [] as skill (skill.name)}
 								<div class="space-y-2">
 									<div class="flex items-center justify-between">
 										<span class="text-sm font-medium text-gray-700">{skill.name}</span>

@@ -1,4 +1,5 @@
 import { json } from '@sveltejs/kit';
+import { dev } from '$app/environment';
 import type { RequestHandler } from './$types';
 import { AdminService } from '$lib/admin';
 import { createSessionToken } from '$lib/server/auth';
@@ -28,13 +29,12 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 	try {
 		const { action, ...data } = await request.json();
 
+		if (action !== 'authenticate' && !locals.user) {
+			return json({ error: 'Unauthorized' }, { status: 401 });
+		}
+
 		switch (action) {
 			case 'create': {
-				// Only authenticated admins can create new admins
-				if (!locals.user) {
-					return json({ error: 'Unauthorized' }, { status: 401 });
-				}
-
 				const createResult = await AdminService.createAdmin({
 					username: data.username,
 					email: data.email,
@@ -62,7 +62,7 @@ export const POST: RequestHandler = async ({ request, cookies, locals }) => {
 						path: '/',
 						httpOnly: true,
 						sameSite: 'strict',
-						secure: process.env.NODE_ENV === 'production',
+						secure: !dev,
 						maxAge: 60 * 60 * 24 // 1 day
 					});
 

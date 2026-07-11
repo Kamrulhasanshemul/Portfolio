@@ -17,7 +17,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     const path = event.url.pathname;
 
     // Protect Admin Routes
-    if (path.startsWith('/admin') && path !== '/admin/login' && path !== '/admin/debug-blog') {
+    if (path.startsWith('/admin') && path !== '/admin/login') {
         if (!user) {
             throw redirect(303, '/admin/login');
         }

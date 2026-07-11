@@ -20,10 +20,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Only log in server environment
 if (!browser) {
 	console.log('Supabase client initialized with URL:', supabaseUrl);
-	console.log(
-		'Using API key:',
-		supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'NO KEY FOUND'
-	);
 }
 
 // Database schema for content table

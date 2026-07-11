@@ -29,6 +29,8 @@
 		user: { username: string } | null;
 	}
 
+	let { children } = $props();
+
 	let authState: AuthState = $state({ isAuthenticated: false, initialized: false, user: null });
 	let isSidebarOpen = $state(true);
 	let isLoadingContent = $state(false);
@@ -169,7 +171,7 @@
 						</div>
 					</div>
 				{:else}
-					<slot />
+					{@render children()}
 				{/if}
 			</div>
 		</main>
@@ -177,6 +179,6 @@
 {:else}
 	<!-- Login Page Container -->
 	<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-		<slot />
+		{@render children()}
 	</div>
 {/if}

@@ -10,8 +10,7 @@
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImageUpload from '$lib/components/admin/ImageUpload.svelte';
 
-	export let data;
-	export let form;
+	let { data, form } = $props();
 
 	let project = data.project;
 	let loading = false;

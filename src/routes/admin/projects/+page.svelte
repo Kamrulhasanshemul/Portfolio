@@ -2,7 +2,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Plus, Pencil, ExternalLink, Trash2 } from '@lucide/svelte';
 
-	export let data;
+	let { data } = $props();
 </script>
 
 <div class="space-y-6">

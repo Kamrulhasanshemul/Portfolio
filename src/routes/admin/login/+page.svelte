@@ -161,14 +161,7 @@
 		<!-- Footer Section -->
 		<Card.Footer class="pt-6">
 			<div class="w-full text-center">
-				<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-					<p class="mb-2 text-sm font-medium text-gray-700">Default Credentials</p>
-					<div class="space-y-1 text-xs text-gray-600">
-						<p><span class="font-medium">Username:</span> admin</p>
-						<p><span class="font-medium">Password:</span> admin123</p>
-					</div>
-				</div>
-				<p class="mt-4 text-xs text-gray-500">Secure access to your portfolio management system</p>
+				<p class="text-xs text-gray-500">Secure access to your portfolio management system</p>
 			</div>
 		</Card.Footer>
 	</Card.Root>

@@ -1,10 +1,11 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Card, CardContent, CardHeader } from '$lib/components/ui/card';
 	import { ArrowLeft, Calendar, Clock, Eye, Twitter, Linkedin, Link } from '@lucide/svelte';
 
-	export let data;
+	let { data } = $props();
 	const { post, relatedPosts } = data;
 
 	function formatDate(dateString: string) {
@@ -71,7 +72,7 @@
 	<meta property="og:title" content={post.title} />
 	<meta property="og:description" content={post.meta_description || post.excerpt} />
 	<meta property="og:type" content="article" />
-	<meta property="og:url" content={`${window?.location?.origin}/blog/${post.slug}`} />
+	<meta property="og:url" content={`${$page.url.origin}/blog/${post.slug}`} />
 	{#if post.featured_image}
 		<meta property="og:image" content={post.featured_image} />
 	{/if}

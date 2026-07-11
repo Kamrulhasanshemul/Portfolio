@@ -92,8 +92,6 @@ export const actions: Actions = {
             updated_at: new Date().toISOString()
         };
 
-        let error;
-
         // Helper to run query
         const runQuery = async (data: any) => {
             console.log('Running DB Query with payload keys:', Object.keys(data));
@@ -117,7 +115,7 @@ export const actions: Actions = {
                 msg.includes('is_featured')
             ) {
                 console.warn('Column missing in DB (detected via error match), retrying without is_featured...');
-                const { is_featured, ...safePayload } = payload;
+                const { is_featured, ...safePayload } = payload as any;
                 result = await runQuery(safePayload);
             }
         }

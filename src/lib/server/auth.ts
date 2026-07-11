@@ -1,7 +1,8 @@
 import { env } from '$env/dynamic/private';
+import { dev } from '$app/environment';
 import { createHmac, randomBytes } from 'node:crypto';
 
-const SESSION_SECRET = env.SESSION_SECRET || 'default-insecure-secret-please-change';
+const SESSION_SECRET = env.SESSION_SECRET || (dev ? 'dev-secret-key' : (() => { throw new Error('SESSION_SECRET is not set'); })());
 
 export function createSessionToken(username: string): string {
     const data = JSON.stringify({ username, timestamp: Date.now() });

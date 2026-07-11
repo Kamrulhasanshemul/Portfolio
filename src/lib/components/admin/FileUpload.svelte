@@ -1,18 +1,23 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import { Upload, X, FileText, Loader2 } from '@lucide/svelte';
-	import { createEventDispatcher } from 'svelte';
+	let {
+		value = $bindable(''),
+		label = 'Upload File',
+		accept = '.pdf,.doc,.docx',
+		onChange = () => {},
+		onUpload
+	} = $props<{
+		value?: string;
+		label?: string;
+		accept?: string;
+		onChange?: () => void;
+		onUpload?: (payload: { url: string }) => void;
+	}>();
 
-	export let value: string = '';
-	export let label: string = 'Upload File';
-	export let accept: string = '.pdf,.doc,.docx';
-	export let onChange: () => void = () => {};
-
-	let uploading = false;
-	let fileInput: HTMLInputElement;
-	let error = '';
-
-	const dispatch = createEventDispatcher();
+	let uploading = $state(false);
+	let fileInput: HTMLInputElement | undefined = $state();
+	let error = $state('');
 
 	async function handleFileSelect(e: Event) {
 		const target = e.target as HTMLInputElement;
@@ -46,7 +51,7 @@
 			const result = await response.json();
 			value = result.url;
 			onChange(); // Notify parent
-			dispatch('upload', { url: value });
+			onUpload?.({ url: value });
 		} catch (err) {
 			console.error('Upload Error:', err);
 			error = (err as Error).message || 'Failed to upload file';
@@ -93,7 +98,7 @@
 				type="file"
 				bind:this={fileInput}
 				{accept}
-				on:change={handleFileSelect}
+				onchange={handleFileSelect}
 				class="hidden"
 			/>
 			<Button

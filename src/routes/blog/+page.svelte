@@ -6,11 +6,11 @@
 	import { Card, CardContent, CardHeader } from '$lib/components/ui/card';
 	import { Calendar, Clock, ArrowRight, Search, Filter } from '@lucide/svelte';
 
-	export let data;
+	let { data } = $props();
 	const { posts, categories = [], totalCount, currentPage, totalPages, category } = data;
 
-	let searchQuery = '';
-	let selectedCategory = category;
+	let searchQuery = $state('');
+	let selectedCategory = $state(category);
 
 	interface Category {
 		slug: string;
@@ -76,11 +76,13 @@
 		return range;
 	}
 
-	$: filteredPosts = posts.filter(
-		(post) =>
-			searchQuery === '' ||
-			post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase())
+	let filteredPosts = $derived(
+		posts.filter(
+			(post) =>
+				searchQuery === '' ||
+				post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase())
+		)
 	);
 </script>
 
