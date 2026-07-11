@@ -15,7 +15,7 @@
 	} from '@lucide/svelte';
 
 	let { data } = $props();
-	const { project } = data;
+	const { project } = $derived(data);
 
 	let currentImageIndex = $state(0);
 	let isImageModalOpen = $state(false);

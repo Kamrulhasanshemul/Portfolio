@@ -23,9 +23,14 @@
 		...restProps
 	}: ToggleGroupPrimitive.RootProps & ToggleVariants = $props();
 
+	// Use getters so context consumers see prop updates, not just the initial values
 	setToggleGroupCtx({
-		variant,
-		size
+		get variant() {
+			return variant;
+		},
+		get size() {
+			return size;
+		}
 	});
 </script>
 

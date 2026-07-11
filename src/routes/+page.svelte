@@ -4,7 +4,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
 	import { content } from '$lib/stores/content';
-	import type { Content } from '$lib/types/content';
+	import type { Project, Skill } from '$lib/types/content';
 	import {
 		Mail,
 		Github,
@@ -27,7 +27,9 @@
 
 	let { data } = $props();
 
-	// Initialize with server data if available
+	// Initialize with server data if available; later updates arrive via the
+	// content store subscription below, so capturing the initial value is intended.
+	// svelte-ignore state_referenced_locally
 	let pageContent = $state(data.content);
 	let animatedStats = $state({ years: 0, projects: 0, clients: 0 });
 	let isVisible = $state(false);
@@ -546,7 +548,7 @@
 			</div>
 
 			<div class="grid gap-12 lg:grid-cols-3">
-				{#each (pageContent.projects || []).filter((p) => p.featured) as project (project.title)}
+				{#each (pageContent.projects || []).filter((p: Project) => p.featured) as project (project.title)}
 					<div class="group cursor-pointer">
 						<div class="relative mb-6 aspect-video overflow-hidden rounded-2xl bg-gray-100">
 							<img
@@ -615,7 +617,7 @@
 							{category.replace(/([A-Z])/g, ' $1').trim()}
 						</h3>
 						<div class="space-y-4">
-							{#each (skills as any[]) || [] as skill (skill.name)}
+							{#each (skills as Skill[]) || [] as skill (skill.name)}
 								<div class="space-y-2">
 									<div class="flex items-center justify-between">
 										<span class="text-sm font-medium text-gray-700">{skill.name}</span>

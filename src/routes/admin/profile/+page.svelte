@@ -23,7 +23,7 @@
 				saveMessage = 'Saved!';
 				setTimeout(() => (saveMessage = ''), 3000);
 			}
-		} catch (e) {
+		} catch {
 			alert('Failed to save');
 		} finally {
 			isLoading = false;
@@ -32,7 +32,10 @@
 </script>
 
 <div class="space-y-4">
-	<div class="flex justify-end gap-2">
+	<div class="flex items-center justify-end gap-2">
+		{#if saveMessage}
+			<span class="text-sm text-green-600">{saveMessage}</span>
+		{/if}
 		<Button
 			variant={isDirty ? 'default' : 'secondary'}
 			onclick={saveContent}

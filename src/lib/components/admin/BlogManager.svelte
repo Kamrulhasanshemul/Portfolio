@@ -8,23 +8,23 @@
 	import * as Card from '$lib/components/ui/card';
 	import * as Select from '$lib/components/ui/select';
 	import * as Table from '$lib/components/ui/table';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import ImageUpload from '$lib/components/admin/ImageUpload.svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
-	import { Plus, Search, RefreshCw, MoreHorizontal, Edit, Trash2 } from '@lucide/svelte';
+	import { Plus, Search, RefreshCw, Edit, Trash2 } from '@lucide/svelte';
 
-	import type { BlogPost } from '$lib/types/blog';
+	import type { BlogPost, BlogCategory } from '$lib/types/blog';
+	import type { Content } from '$lib/types/content';
 	import { createBlogPost, updateBlogPost, deleteBlogPost, generateSlug } from '$lib/blog';
 	import { blogCategories } from '$lib/types/blog';
 
-	let { content } = $props<{ content: any }>(); // content prop needed for author fallback
+	let { content } = $props<{ content: Content | null }>(); // content prop needed for author fallback
 
 	let blogPosts = $state<BlogPost[]>([]);
 	let blogLoading = $state(false);
 	let blogError = $state('');
 	let showBlogEditor = $state(false);
 	let editingBlogPost = $state<BlogPost | null>(null);
-	let blogFilters = $state({
+	let blogFilters = $state<{ category: BlogCategory | ''; status: string }>({
 		category: '',
 		status: ''
 	});
@@ -178,7 +178,11 @@
 									variant="outline"
 									size="icon"
 									class="mt-1"
-									onclick={() => (editingBlogPost.slug = generateSlug(editingBlogPost.title))}
+									onclick={() => {
+										if (editingBlogPost) {
+											editingBlogPost.slug = generateSlug(editingBlogPost.title);
+										}
+									}}
 								>
 									<RefreshCw class="h-4 w-4" />
 								</Button>
@@ -204,7 +208,7 @@
 									>{blogCategories[editingBlogPost.category]?.label || 'Select'}</Select.Trigger
 								>
 								<Select.Content>
-									{#each Object.entries(blogCategories) as [key, config]}
+									{#each Object.entries(blogCategories) as [key, config] (key)}
 										<Select.Item value={key}>{config.label}</Select.Item>
 									{/each}
 								</Select.Content>
@@ -295,7 +299,7 @@
 							</Table.Row>
 						</Table.Header>
 						<Table.Body>
-							{#each blogPosts as post}
+							{#each blogPosts as post (post.id)}
 								<Table.Row>
 									<Table.Cell class="font-medium">
 										<div class="flex flex-col">

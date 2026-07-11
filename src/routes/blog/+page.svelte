@@ -7,10 +7,10 @@
 	import { Calendar, Clock, ArrowRight, Search, Filter } from '@lucide/svelte';
 
 	let { data } = $props();
-	const { posts, categories = [], totalCount, currentPage, totalPages, category } = data;
+	const { posts, categories = [], totalCount, currentPage, totalPages, category } = $derived(data);
 
 	let searchQuery = $state('');
-	let selectedCategory = $state(category);
+	const selectedCategory = $derived(category);
 
 	interface Category {
 		slug: string;

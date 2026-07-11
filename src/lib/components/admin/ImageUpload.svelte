@@ -2,9 +2,8 @@
 
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Image, Upload, X, Loader2 } from '@lucide/svelte';
+	import { Upload, X, Loader2 } from '@lucide/svelte';
 
 	let {
 		value = $bindable(''),
@@ -13,7 +12,7 @@
 		onChange,
 		onRemove
 	} = $props<{
-		value: string;
+		value?: string;
 		path?: string;
 		label?: string;
 		onChange?: () => void;

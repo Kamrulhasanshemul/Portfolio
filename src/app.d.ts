@@ -1,4 +1,3 @@
-
 // Add user to locals
 declare global {
 	namespace App {
@@ -8,4 +7,4 @@ declare global {
 	}
 }
 
-export { };
+export {};

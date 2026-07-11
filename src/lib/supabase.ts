@@ -8,8 +8,15 @@ import type { Content } from './types/content.js';
 const supabaseUrl = ENV.SUPABASE_URL;
 const supabaseAnonKey = ENV.SUPABASE_KEY;
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+if (!supabaseAnonKey && !browser) {
+	console.warn(
+		'WARNING: PUBLIC_SUPABASE_KEY is not set. Supabase requests will fail until it is configured.'
+	);
+}
+
+// Create Supabase client (placeholder key keeps module load from throwing when env is missing,
+// e.g. during `vite build` prerender analysis)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey || 'missing-anon-key', {
 	auth: {
 		persistSession: browser, // Only persist in browser
 		autoRefreshToken: browser,
@@ -150,10 +157,12 @@ export class ImageService {
 	static async initializeImageTable() {
 		try {
 			const { error } = await supabase.rpc('create_image_metadata_table');
-			// Note: RPC might not exist, usually tables are created via SQL editor. 
+			// Note: RPC might not exist, usually tables are created via SQL editor.
 			// We provided the SQL in 'database/storage_setup.sql'.
 			return !error;
-		} catch (e) { return false; }
+		} catch {
+			return false;
+		}
 	}
 
 	// Get a signed URL for an image path
@@ -214,14 +223,12 @@ export class ImageService {
 			}
 
 			// 4. Store Metadata in DB
-			const { error: dbError } = await supabase
-				.from('image_metadata')
-				.insert({
-					user_id: userId,
-					bucket_path: path,
-					mime_type: file.type,
-					file_size: file.size
-				});
+			const { error: dbError } = await supabase.from('image_metadata').insert({
+				user_id: userId,
+				bucket_path: path,
+				mime_type: file.type,
+				file_size: file.size
+			});
 
 			// Note: If DB insert fails, we should technically clean up the file, but we'll skip complex rollback for now.
 			if (dbError) {
@@ -237,7 +244,7 @@ export class ImageService {
 			return {
 				success: true,
 				data: {
-					id: uuid, // This is approx, real ID is DB generated but we didn't select it. 
+					id: uuid, // This is approx, real ID is DB generated but we didn't select it.
 					// Let's assume we don't need the DB ID immediately for display, just the URL.
 					user_id: userId,
 					bucket_path: path,
@@ -247,7 +254,6 @@ export class ImageService {
 					url: signedUrl || ''
 				}
 			};
-
 		} catch (err) {
 			console.error('Unexpected error in uploadImage:', err);
 			return { success: false, error: 'Unexpected upload failure' };

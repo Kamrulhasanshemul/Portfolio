@@ -6,22 +6,25 @@
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Switch } from '$lib/components/ui/switch';
 	import * as Card from '$lib/components/ui/card';
-	import { ArrowLeft, Save, Plus, Trash2, GripVertical } from '@lucide/svelte';
+	import { ArrowLeft, Save, Plus, Trash2 } from '@lucide/svelte';
 	import RichTextEditor from '$lib/components/RichTextEditor.svelte';
 	import ImageUpload from '$lib/components/admin/ImageUpload.svelte';
 
 	let { data, form } = $props();
 
-	let project = data.project;
+	// Editable copy of the loaded project; intentionally captures the initial value
+	// so in-progress edits are not clobbered by invalidation.
+	// svelte-ignore state_referenced_locally
+	let project = $state(data.project);
 	let loading = $state(false);
 
 	// Helper for array fields
-	function addItem(field: string, template: any) {
+	function addItem(field: string, template: unknown) {
 		project[field] = [...(project[field] || []), template];
 	}
 
 	function removeItem(field: string, index: number) {
-		project[field] = project[field].filter((_: any, i: number) => i !== index);
+		project[field] = project[field].filter((_: unknown, i: number) => i !== index);
 	}
 </script>
 
@@ -141,7 +144,7 @@
 					</Button>
 				</Card.Header>
 				<Card.Content class="space-y-4">
-					{#each project.key_features as feature, i}
+					{#each project.key_features as feature, i (i)}
 						<div class="flex items-start gap-4 rounded-lg border p-4">
 							<div class="flex-1 space-y-4">
 								<Input placeholder="Feature Title" bind:value={feature.title} />
@@ -174,7 +177,7 @@
 					</Button>
 				</Card.Header>
 				<Card.Content class="space-y-4">
-					{#each project.challenges_solved as item, i}
+					{#each project.challenges_solved as item, i (i)}
 						<div class="flex items-start gap-4 rounded-lg border p-4">
 							<div class="flex-1 space-y-4">
 								<Input placeholder="Challenge" bind:value={item.challenge} />
@@ -279,7 +282,7 @@
 				</Card.Header>
 				<Card.Content>
 					<div class="space-y-2">
-						{#each project.technologies as tech, i}
+						{#each project.technologies as _tech, i (i)}
 							<div class="flex gap-2">
 								<Input bind:value={project.technologies[i]} />
 								<Button

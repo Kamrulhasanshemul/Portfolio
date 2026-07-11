@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 	import { Upload, X, Image as ImageIcon } from '@lucide/svelte';
 	import { ImageService, supabase } from '$lib/supabase';
 
@@ -103,9 +103,10 @@
 			} else {
 				throw new Error(result.error || 'Upload failed');
 			}
-		} catch (error: any) {
+		} catch (error) {
 			console.error('Error processing image:', error);
-			uploadError = error.message || 'Error uploading image. Please try again.';
+			uploadError =
+				(error instanceof Error && error.message) || 'Error uploading image. Please try again.';
 			value = '';
 			preview = '';
 		} finally {

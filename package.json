@@ -7,13 +7,12 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"preview:env": "node setup-env.js && vite preview",
+		"preview:env": "node scripts/setup-env.js && vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
-		"test:crud": "node test-crud-cms.js",
 		"deploy:prepare": "npm run build && echo 'Build ready for Cloudflare deployment'"
 	},
 	"devDependencies": {

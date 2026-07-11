@@ -3,25 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Badge } from '$lib/components/ui/badge';
 	import * as Card from '$lib/components/ui/card';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import {
-		Shield,
-		LogOut,
-		User,
-		Settings,
-		Globe,
-		Menu,
-		RefreshCw,
-		Save,
-		Eye
-	} from '@lucide/svelte';
+	import { LogOut, User, Menu, RefreshCw } from '@lucide/svelte';
 	import AdminSidebar from '$lib/components/admin/AdminSidebar.svelte';
 	import { content } from '$lib/stores/content';
 	import { ContentService } from '$lib/supabase';
-	import type { Content } from '$lib/types/content';
 
 	interface AuthState {
 		isAuthenticated: boolean;
@@ -80,10 +68,6 @@
 	function handleLogout() {
 		auth.logout();
 		goto('/admin/login');
-	}
-
-	function goHome() {
-		window.open('/', '_blank');
 	}
 
 	// Helper to get title from path

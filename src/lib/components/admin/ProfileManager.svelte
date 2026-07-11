@@ -86,7 +86,7 @@
 				<!-- Technical skills list -->
 				<div>
 					<Label>Technical Expertise</Label>
-					{#each content.about.technicalExpertise as item, i}
+					{#each content.about.technicalExpertise as _item, i (i)}
 						<div class="mt-2 flex gap-2">
 							<Input bind:value={content.about.technicalExpertise[i]} oninput={onChange} />
 							<Button
@@ -109,7 +109,7 @@
 				<!-- Industry Focus -->
 				<div>
 					<Label>Industry Focus</Label>
-					{#each content.about.industryFocus as item, i}
+					{#each content.about.industryFocus as _item, i (i)}
 						<div class="mt-2 flex gap-2">
 							<Input bind:value={content.about.industryFocus[i]} oninput={onChange} />
 							<Button variant="ghost" size="icon" onclick={() => removeFromList('industryFocus', i)}

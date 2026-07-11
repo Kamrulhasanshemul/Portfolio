@@ -30,7 +30,7 @@
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-gray-100">
-					{#each data.projects as project}
+					{#each data.projects as project (project.id)}
 						<tr class="hover:bg-gray-50/50">
 							<td class="px-6 py-4 font-medium text-gray-900">{project.title}</td>
 							<td class="px-6 py-4 text-gray-600">

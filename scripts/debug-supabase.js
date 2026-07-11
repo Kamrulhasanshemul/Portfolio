@@ -7,9 +7,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://dttkwomsrqrjshuutiac.supabase.co';
-const supabaseKey =
-	process.env.SUPABASE_KEY ||
-	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0dGt3b21zcnFyanNodXV0aWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNzY0NzksImV4cCI6MjA2NDY1MjQ3OX0._xG1W5ZePSHUzUTWBufnjBTzgP6GTSbgY-a2z38T1yw';
+const supabaseKey = process.env.PUBLIC_SUPABASE_KEY || process.env.SUPABASE_KEY;
+if (!supabaseKey) {
+	console.error('PUBLIC_SUPABASE_KEY is not set. Add it to your .env before running this script.');
+	process.exit(1);
+}
 
 console.log('=== SUPABASE DEBUG ===');
 console.log('URL:', supabaseUrl);

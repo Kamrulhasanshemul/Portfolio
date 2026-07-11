@@ -138,8 +138,8 @@ npm run preview      # Preview production build
 ```env
 SUPABASE_URL=https://dttkwomsrqrjshuutiac.supabase.co
 SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR0dGt3b21zcnFyanNodXV0aWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNzY0NzksImV4cCI6MjA2NDY1MjQ3OX0._xG1W5ZePSHUzUTWBufnjBTzgP6GTSbgY-a2z38T1yw
-DATABASE_URL=postgresql://postgres:KUdLGMCaQ5lX9hH4@db.dttkwomsrqrjshuutiac.supabase.co:5432/postgres
-SESSION_SECRET=uvmgC25nMo4joDO9txt4zI+ZFN0vw5G1QQiapL40vS4=
+DATABASE_URL=postgresql://postgres:<your-db-password>@db.dttkwomsrqrjshuutiac.supabase.co:5432/postgres
+SESSION_SECRET=<generate-with: openssl rand -base64 32>
 ```
 
 ## 🎉 **MISSION ACCOMPLISHED**

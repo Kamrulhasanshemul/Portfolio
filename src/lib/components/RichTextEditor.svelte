@@ -78,49 +78,49 @@
 	});
 
 	function toggleBold() {
-		editor.chain().focus().toggleBold().run();
+		editor?.chain().focus().toggleBold().run();
 	}
 
 	function toggleItalic() {
-		editor.chain().focus().toggleItalic().run();
+		editor?.chain().focus().toggleItalic().run();
 	}
 
 	function toggleStrike() {
-		editor.chain().focus().toggleStrike().run();
+		editor?.chain().focus().toggleStrike().run();
 	}
 
 	function toggleCode() {
-		editor.chain().focus().toggleCode().run();
+		editor?.chain().focus().toggleCode().run();
 	}
 
 	function toggleBlockquote() {
-		editor.chain().focus().toggleBlockquote().run();
+		editor?.chain().focus().toggleBlockquote().run();
 	}
 
 	function toggleBulletList() {
-		editor.chain().focus().toggleBulletList().run();
+		editor?.chain().focus().toggleBulletList().run();
 	}
 
 	function toggleOrderedList() {
-		editor.chain().focus().toggleOrderedList().run();
+		editor?.chain().focus().toggleOrderedList().run();
 	}
 
 	function setHeading(level: 1 | 2 | 3) {
-		editor.chain().focus().toggleHeading({ level }).run();
+		editor?.chain().focus().toggleHeading({ level }).run();
 	}
 
 	function undo() {
-		editor.chain().focus().undo().run();
+		editor?.chain().focus().undo().run();
 	}
 
 	function redo() {
-		editor.chain().focus().redo().run();
+		editor?.chain().focus().redo().run();
 	}
 
 	function addLink() {
 		const url = window.prompt('Enter URL:');
 		if (url) {
-			editor.chain().focus().setLink({ href: url }).run();
+			editor?.chain().focus().setLink({ href: url }).run();
 		}
 	}
 
@@ -158,7 +158,7 @@
 			const result = await response.json();
 
 			if (result.success) {
-				editor.chain().focus().setImage({ src: result.url }).run();
+				editor?.chain().focus().setImage({ src: result.url }).run();
 			} else {
 				alert(result.error || 'Upload failed');
 			}
@@ -355,6 +355,7 @@
 	<!-- Editor Content -->
 	<div
 		bind:this={element}
+		aria-label={placeholder}
 		class="prose prose-sm min-h-[200px] max-w-none p-4 focus:outline-none {readonly
 			? 'bg-gray-50'
 			: ''}"

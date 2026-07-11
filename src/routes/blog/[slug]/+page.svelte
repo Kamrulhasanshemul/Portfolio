@@ -6,7 +6,7 @@
 	import { ArrowLeft, Calendar, Clock, Eye, Twitter, Linkedin, Link } from '@lucide/svelte';
 
 	let { data } = $props();
-	const { post, relatedPosts } = data;
+	const { post, relatedPosts } = $derived(data);
 
 	function formatDate(dateString: string) {
 		return new Date(dateString).toLocaleDateString('en-US', {

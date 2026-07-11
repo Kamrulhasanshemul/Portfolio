@@ -2,7 +2,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
-	import { Users, Eye as EyeIcon, TrendingUp, Calendar, Briefcase } from '@lucide/svelte';
+	import { Users, Eye as EyeIcon, TrendingUp, Briefcase } from '@lucide/svelte';
 	import type { Content } from '$lib/types/content';
 
 	let { content = $bindable(), onChange } = $props<{

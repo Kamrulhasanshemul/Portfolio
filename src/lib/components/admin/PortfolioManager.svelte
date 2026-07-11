@@ -7,8 +7,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import * as Card from '$lib/components/ui/card';
 	import { Trash2, Plus } from '@lucide/svelte';
-	import type { Content } from '$lib/types/content';
-	import * as Accordion from '$lib/components/ui/accordion';
+	import type { Content, Service, Project } from '$lib/types/content';
 
 	let { content = $bindable(), onChange } = $props<{
 		content: Content;
@@ -21,7 +20,7 @@
 	}
 
 	function removeService(index: number) {
-		content.services = content.services.filter((_: any, i: number) => i !== index);
+		content.services = content.services.filter((_: Service, i: number) => i !== index);
 		onChange();
 	}
 
@@ -34,7 +33,7 @@
 	}
 
 	function removeProject(index: number) {
-		content.projects = content.projects.filter((_: any, i: number) => i !== index);
+		content.projects = content.projects.filter((_: Project, i: number) => i !== index);
 		onChange();
 	}
 
@@ -49,7 +48,7 @@
 	function removeTechnology(projectIndex: number, techIndex: number) {
 		content.projects[projectIndex].technologies = content.projects[
 			projectIndex
-		].technologies.filter((_: any, i: number) => i !== techIndex);
+		].technologies.filter((_: string, i: number) => i !== techIndex);
 		onChange();
 	}
 </script>
@@ -63,7 +62,7 @@
 		</div>
 
 		<div class="grid gap-4">
-			{#each content.services as service, i}
+			{#each content.services as service, i (i)}
 				<Card.Root class="border-0 shadow-sm ring-1 ring-gray-200">
 					<Card.Content class="pt-6">
 						<div class="mb-2 flex justify-end">
@@ -99,7 +98,7 @@
 		</div>
 
 		<div class="grid gap-4">
-			{#each content.projects as project, i}
+			{#each content.projects as project, i (i)}
 				<Card.Root class="border-0 shadow-sm ring-1 ring-gray-200">
 					<Card.Content class="pt-6">
 						<div class="mb-2 flex justify-end">
@@ -130,7 +129,7 @@
 							<div>
 								<Label>Technologies</Label>
 								<div class="mt-2 flex flex-wrap gap-2">
-									{#each project.technologies as tech, tIndex}
+									{#each project.technologies as _tech, tIndex (tIndex)}
 										<div class="flex items-center gap-1">
 											<Input
 												bind:value={project.technologies[tIndex]}

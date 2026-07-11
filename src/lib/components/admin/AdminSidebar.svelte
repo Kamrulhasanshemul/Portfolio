@@ -1,15 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
-	import {
-		LayoutDashboard,
-		UserCircle,
-		Briefcase,
-		PenTool,
-		Globe,
-		Menu,
-		FolderKanban
-	} from '@lucide/svelte';
+	import { LayoutDashboard, UserCircle, PenTool, Globe, Menu, FolderKanban } from '@lucide/svelte';
 
 	let { isOpen = true, onToggle } = $props<{
 		isOpen?: boolean;
@@ -46,7 +38,7 @@
 	</div>
 
 	<nav class="flex-1 space-y-2 p-4">
-		{#each sidebarItems as item}
+		{#each sidebarItems as item (item.href)}
 			<a
 				href={item.href}
 				class="flex w-full items-center rounded-md px-3 py-2 text-sm font-medium transition-colors
