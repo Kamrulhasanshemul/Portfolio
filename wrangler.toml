@@ -5,13 +5,13 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".svelte-kit/cloudflare"
 
 [env.production.vars]
-PUBLIC_SUPABASE_URL = "production_url_here"
+PUBLIC_SUPABASE_URL = "https://your-project.supabase.co"
 PUBLIC_SUPABASE_KEY = "set_in_cloudflare_dashboard"
 DATABASE_URL = "set_in_cloudflare_dashboard"
 SESSION_SECRET = "set_in_cloudflare_dashboard"
 
 [vars]
-PUBLIC_SUPABASE_URL = "production_url_here"
+PUBLIC_SUPABASE_URL = "https://your-project.supabase.co"
 PUBLIC_SUPABASE_KEY = "set_in_cloudflare_dashboard"
 DATABASE_URL = "set_in_cloudflare_dashboard"
 SESSION_SECRET = "set_in_cloudflare_dashboard"

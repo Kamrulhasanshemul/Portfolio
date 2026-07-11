@@ -17,8 +17,8 @@
 	let { data } = $props();
 	const { project } = data;
 
-	let currentImageIndex = 0;
-	let isImageModalOpen = false;
+	let currentImageIndex = $state(0);
+	let isImageModalOpen = $state(false);
 
 	function openImageModal(index: number) {
 		currentImageIndex = index;

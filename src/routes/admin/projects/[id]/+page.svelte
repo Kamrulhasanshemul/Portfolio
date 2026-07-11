@@ -13,7 +13,7 @@
 	let { data, form } = $props();
 
 	let project = data.project;
-	let loading = false;
+	let loading = $state(false);
 
 	// Helper for array fields
 	function addItem(field: string, template: any) {
